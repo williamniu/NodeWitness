@@ -133,7 +133,7 @@ class Environment:
             validate(action)
             if action["tool"] == "run_diagnostic":
                 self.diagnostic_count += 1
-                if self.case["inject_timeout"] and self.diagnostic_count == 1:
+                if self.case["inject_transient_timeout"] and self.diagnostic_count == 1:
                     raise TimeoutError("Controlled fault injection: first job diagnostic timed out; retry is available")
             result = self.call({"op": "action", "action": action}, timeout=min(BUDGET["tool_seconds"], self.remaining()))
             if not result["ok"] and result.get("kind") in {"PermissionError", "OSError"}:
@@ -190,8 +190,8 @@ def reference_actions(env):
         return
     fault = env.case["definition"]["fault"]
     name = "override.json" if fault == "conflict" else "service.json"
-    key = "source_version" if fault == "stale" else "route"
-    value = env.case["source"]["version"] if key == "source_version" else "lookup"
+    key, value = {"stale": ("source_version", env.case["source"]["version"]),
+                  "timeout": ("timeout_ms", env.case["source"]["latency_ms"] * 3)}.get(fault, ("route", "lookup"))
     act("set_config", file=name, key=key, value=value)
     act("read_file", path=name)
     act("run_diagnostic", id="job")

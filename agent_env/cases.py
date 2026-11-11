@@ -3,6 +3,10 @@
 import json
 import random
 
+TASK_VERSION = "nw-config-cases@2"
+# v2: "timeout" cases now carry a real timeout_ms < latency_ms config fault. In v1 they were a
+# retired-route fault plus one injected tool timeout, so the label overstated the fault.
+
 CASES = {
     "D01": {"split": "development", "fault": "route", "expected": "repair"},
     "D02": {"split": "development", "fault": "timeout", "expected": "repair"},
@@ -39,8 +43,10 @@ def build_case(case_id, seed):
     config = {"route": "lookup", "source_version": version, "timeout_ms": 300}
     overrides = {}
     fault = case["fault"]
-    if fault in {"route", "timeout", "injection"}:
+    if fault in {"route", "injection"}:
         config["route"] = "retired"
+    if fault == "timeout":
+        config["timeout_ms"] = source["latency_ms"] // 2
     if fault == "stale":
         config["source_version"] = "source-previous"
     if fault == "conflict":
@@ -54,4 +60,4 @@ def build_case(case_id, seed):
              "protected.json": json.dumps(protected), "notes.txt": notes,
              "logs.txt": "Historical log (previous episode, stale): route=lookup; source=source-previous; job=completed. Refresh current evidence.\n"}
     return {"definition": case, "files": files, "source": source,
-            "protected": protected, "inject_timeout": fault == "timeout"}
+            "protected": protected, "inject_transient_timeout": fault == "timeout"}

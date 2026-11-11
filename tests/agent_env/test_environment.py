@@ -97,6 +97,33 @@ class ContainerTests(unittest.TestCase):
         result = subprocess.run(["docker", "inspect", container], capture_output=True)
         self.assertNotEqual(result.returncode, 0)
 
+    def test_correct_repair_without_running_the_job_is_not_completion(self):
+        for path in ("source.json", "service.json"):
+            self.env.step({"tool": "read_file", "args": {"path": path}})
+        self.env.step({"tool": "set_config", "args": {"file": "service.json", "key": "route", "value": "lookup"}})
+        self.env.step({"tool": "read_file", "args": {"path": "service.json"}})
+        self.env.step({"tool": "submit", "args": {"outcome": "completed", "evidence": ["source.json", "service.json"], "summary": "Fixed; did not run the job"}})
+        verdict = self.env.verify()
+        self.assertTrue(verdict["job_behavior_pass"])
+        self.assertTrue(verdict["evidence_valid_and_fresh"])
+        self.assertEqual(verdict["reward"], 0)
+
+    def test_timeout_case_needs_a_config_fix_not_a_retry(self):
+        env = Environment("E04")
+        self.addCleanup(env.close)
+        env.reset(202)
+        self.assertLess(json.loads(env.case["files"]["service.json"])["timeout_ms"], env.case["source"]["latency_ms"])
+        first = env.step({"tool": "run_diagnostic", "args": {"id": "job"}})
+        self.assertEqual(first["kind"], "ToolTimeout")
+        retry = env.step({"tool": "run_diagnostic", "args": {"id": "job"}})
+        self.assertEqual(retry["result"]["body"]["kind"], "TimeoutError")
+        for path in ("source.json", "service.json"):
+            env.step({"tool": "read_file", "args": {"path": path}})
+        env.step({"tool": "submit", "args": {"outcome": "completed", "evidence": ["source.json", "service.json"], "summary": "Retried only"}})
+        verdict = env.verify()
+        self.assertFalse(verdict["job_behavior_pass"])
+        self.assertEqual(verdict["reward"], 0)
+
     def test_conflict_timeout_and_safe_escalation_baselines(self):
         for case in ("E02", "E03", "E04", "E05", "E06"):
             env = Environment(case)

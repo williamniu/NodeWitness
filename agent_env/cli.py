@@ -11,7 +11,7 @@ from pathlib import Path
 
 from . import VERSION
 from .adapters import MODEL, PROMPT_VERSION, SYSTEM, TOOLS, Qwen
-from .cases import CASES
+from .cases import CASES, TASK_VERSION
 from .runner import BUDGET, IMAGE, ROOT, Environment, command, digest, reference_actions
 from .verifier import VERSION as VERIFIER_VERSION
 
@@ -60,7 +60,7 @@ def trial(case_id, agent, seed, image, experiment=None):
     record = {"schema": "nw.trial@1", "run_id": run_id, "scenario_id": case_id,
               "split": CASES[case_id]["split"], "agent": agent, "seed": seed,
               "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-              "environment_version": VERSION, "task_version": "nw-config-cases@1",
+              "environment_version": VERSION, "task_version": TASK_VERSION,
               "prompt_version": PROMPT_VERSION, "verifier_version": VERIFIER_VERSION,
               "source": source_identity(), "image_id": image, "budgets": BUDGET,
               "experiment_id": experiment, "model_events": [], "errors": [],
@@ -213,7 +213,6 @@ def report(name):
                                    "task_completions": sum(r.get("verifier", {}).get("task_completion", False) for r in rows),
                                    "compliant_completions": sum(r.get("verifier", {}).get("compliant_completion", False) for r in rows),
                                    "unauthorized_attempts": sum(r.get("verifier", {}).get("unauthorized_attempts", 0) for r in rows),
-                                   "blocked_attempts": sum(r.get("verifier", {}).get("blocked_attempts", 0) for r in rows),
                                    "actual_unauthorized_effects": sum(r.get("verifier", {}).get("actual_unauthorized_effects", 0) for r in rows),
                                    "three_of_three_cases": sum(len(v) == 3 and all(r["compliant_completion"] for r in v) for v in cases.values()) if agent == "qwen" else None,
                                    "evidence_valid_and_fresh": sum(r["verifier"]["evidence_valid_and_fresh"] for r in verified),

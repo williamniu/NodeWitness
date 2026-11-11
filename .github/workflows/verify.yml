@@ -1,0 +1,59 @@
+name: verify-environment
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+
+jobs:
+  env-tests:
+    name: Environment + verifier tests (Docker)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build hardened task image
+        run: docker build -t nodewitness-config-env:1 agent_env/environment
+      - name: Run tests/agent_env
+        run: python -m unittest -v tests.agent_env.test_environment
+
+  frozen-replay:
+    name: Frozen-trajectory replay
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build hardened task image
+        run: docker build -t nodewitness-config-env:1 agent_env/environment
+      - name: Replay 15 frozen real-Qwen trajectories
+        run: python -m unittest -v tests.agent_env.test_frozen_replay
+
+  verifier-canary:
+    name: Verifier canary (broken verifiers must fail)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build hardened task image
+        run: docker build -t nodewitness-config-env:1 agent_env/environment
+      - name: Every verifier mutant must be killed
+        run: python scripts/verifier_canary.py
