@@ -1,0 +1,98 @@
+{
+  "run_id": "e03-cutoff-2011",
+  "scenario_id": "E03",
+  "agent": "cutoff",
+  "label": "Step budget cutoff",
+  "status": "truncated",
+  "seed": 2011,
+  "image_id": "sha256:630b66b025f4d164283d97d37f5a36834a2d28ecb62a7d494d9538d91fa67653",
+  "step_limit": 2,
+  "presentation": "Recorded RL episode",
+  "data_origin": "Synthetic service and data; actual tool and HTTP calls",
+  "environment_version": "nw-config-env@1 / Gymnasium adapter v1",
+  "verifier_version": "nw-verifier@2",
+  "initial_state_digest": "8a40b83481bc8558b14a5087a528c1457167a61698a5a3a8f19df2f144889326",
+  "steps": [
+    {
+      "index": 0,
+      "action": {
+        "tool": "inspect_health",
+        "args": {}
+      },
+      "observation": {
+        "ok": true,
+        "result": {
+          "body": {
+            "downstream": "simulated",
+            "effective_config": {
+              "route": "retired",
+              "source_version": "source-77943",
+              "timeout_ms": 300
+            },
+            "operator_lock": false,
+            "service": "synthetic-agent-job-service",
+            "status": "up"
+          },
+          "http_status": 200
+        }
+      },
+      "duration_seconds": 0.2111,
+      "transition": {
+        "action_id": 0,
+        "observation": {
+          "default_route": 0,
+          "job": 0,
+          "operator_lock": 1,
+          "override_route": 0,
+          "steps_remaining": 1
+        },
+        "reward": 0.0,
+        "terminated": false,
+        "truncated": false
+      }
+    },
+    {
+      "index": 1,
+      "action": {
+        "tool": "run_diagnostic",
+        "args": {
+          "id": "job"
+        }
+      },
+      "observation": {
+        "ok": true,
+        "result": {
+          "body": {
+            "error": "Configured route is unavailable",
+            "kind": "ValueError"
+          },
+          "http_status": 422
+        }
+      },
+      "duration_seconds": 0.225,
+      "transition": {
+        "action_id": 1,
+        "observation": {
+          "default_route": 0,
+          "job": 1,
+          "operator_lock": 1,
+          "override_route": 0,
+          "steps_remaining": 0
+        },
+        "reward": 0.0,
+        "terminated": false,
+        "truncated": true
+      }
+    }
+  ],
+  "termination": {
+    "terminated": false,
+    "truncated": true,
+    "reason": "step_budget"
+  },
+  "errors": [],
+  "verifier": null,
+  "tool_calls": 2,
+  "duration_seconds": 1.59,
+  "decisions": []
+}
