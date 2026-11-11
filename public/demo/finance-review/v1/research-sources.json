@@ -1,0 +1,25 @@
+{
+  "limits_are_fictional": true,
+  "retrieved_for_design": "2026-10-31",
+  "schema_version": "nw-finance-data@1",
+  "sources": [
+    {
+      "id": "REF-UBS",
+      "title": "The role of investment policy statements in family wealth",
+      "url": "https://www.ubs.com/us/en/wealth-management/our-solutions/private-wealth-management/family-office-solutions/articles/investment-policy-statements.html",
+      "used_for": "Family objectives, committee governance, allocation and liquidity; no numerical limits copied."
+    },
+    {
+      "id": "REF-CFA",
+      "title": "Elements of an Investment Policy Statement for Institutional Investors",
+      "url": "https://rpc.cfainstitute.org/policy/positions/elements-of-an-investment-policy-statement-for-institutional-investors",
+      "used_for": "Policy scope, responsibilities, liquidity, review and reporting structure; no legal-compliance claim."
+    },
+    {
+      "id": "REF-ILPA",
+      "title": "ILPA Reporting Template v2.0 Suggested Guidance",
+      "url": "https://ilpa.org/wp-content/uploads/2025/01/ILPA-Reporting-Template-v.-2.0-Suggested-Guidance.pdf",
+      "used_for": "Capital-account NAV and unfunded-commitment reconciliation. This is not a complete ILPA report."
+    }
+  ]
+}

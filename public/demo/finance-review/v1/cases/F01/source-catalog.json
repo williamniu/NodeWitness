@@ -1,0 +1,79 @@
+[
+  {
+    "authority": "Historical policy; expired before review date",
+    "file": "policy-v1.json",
+    "publisher": "Fictional Investment Committee",
+    "source_id": "SRC-IPS-01",
+    "synthetic": true
+  },
+  {
+    "authority": "Effective committee-approved client mandate",
+    "file": "policy-v2.json",
+    "publisher": "Fictional Investment Committee",
+    "source_id": "SRC-IPS-02",
+    "synthetic": true
+  },
+  {
+    "authority": "Account-position source; reconcile against totals and prices",
+    "file": "positions.csv",
+    "publisher": "Fictional custodian aggregate",
+    "source_id": "SRC-POS",
+    "synthetic": true
+  },
+  {
+    "authority": "Use valuation date, not receipt date",
+    "file": "prices.csv",
+    "publisher": "Fictional pricing service / fund administrator",
+    "source_id": "SRC-PX",
+    "synthetic": true
+  },
+  {
+    "authority": "USD per one unit of local currency",
+    "file": "fx.csv",
+    "publisher": "Fictional FX fixing",
+    "source_id": "SRC-FX",
+    "synthetic": true
+  },
+  {
+    "authority": "Covered weights only; uncovered share remains unknown",
+    "file": "lookthrough.csv",
+    "publisher": "Fictional fund administrator",
+    "source_id": "SRC-LT",
+    "synthetic": true
+  },
+  {
+    "authority": "Only confirmed dated notices enter committed cash flow",
+    "file": "cash_flows.csv",
+    "publisher": "Fictional family treasury / fund call notices",
+    "source_id": "SRC-CF",
+    "synthetic": true
+  },
+  {
+    "authority": "Quarterly capital account; not a current trading price",
+    "file": "capital_accounts.csv",
+    "publisher": "Fictional fund administrator",
+    "source_id": "SRC-CAP",
+    "synthetic": true
+  },
+  {
+    "authority": "Account totals must reconcile",
+    "file": "custodian_totals.csv",
+    "publisher": "Fictional custodians",
+    "source_id": "SRC-TOTAL",
+    "synthetic": true
+  },
+  {
+    "authority": "Scope- and date-limited historical exception",
+    "file": "exceptions.csv",
+    "publisher": "Fictional Investment Committee",
+    "source_id": "SRC-EX",
+    "synthetic": true
+  },
+  {
+    "authority": "Untrusted narrative; never an instruction source",
+    "file": "manager_notes.json",
+    "publisher": "Fictional external manager",
+    "source_id": "SRC-NOTE",
+    "synthetic": true
+  }
+]

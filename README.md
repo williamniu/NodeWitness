@@ -2,9 +2,51 @@
 
 > Build AI agents anyone can understand, review, and control.
 
-NodeWitness is a localhost enterprise AI-agent governance MVP. The bundled workspace, **Aurora Family Office - Client Mandate Compliance**, turns a natural-language mandate into a searchable workflow graph with source versioning, evidence citations, structured decision bases, branch-level re-runs, human corrections, proposal-specific approvals, safe local artifacts, and a downloadable audit trail.
+NodeWitness is a localhost AI-agent governance MVP. The main workspace, **Aurora Family Office — Principal Review**, reads the approved synthetic IPS and portfolio sources, runs seven financial controls, and uses the installed local Qwen model to prepare a traceable review package. A local operator can inspect evidence, correct a supported extraction, replace a source snapshot, and acknowledge the exact package. No external financial action is connected.
 
-## Architecture
+## Financial review workflow (NW-003)
+
+`/` is the main financial experience. `/legacy` preserves the original hackathon sample, including its deterministic demonstration and optional answer-supplied Codex adapter. `/environments` remains secondary engineering evidence from NW-001. The new financial runner does not use the old Codex adapter or a silent fixture fallback.
+
+- **Inputs:** the owner-reviewed NW-002 pack in `public/demo/finance-review/v1/`: 30 holdings, four accounts, fund components, dated cash obligations, private-capital statements, prices/FX, scoped exceptions, two IPS PDFs and seven known case snapshots. Every field is synthetic. Structured policies are approved companions to these fixed PDFs, not a general document-extraction product.
+- **Actual execution:** trusted ingestion checks file hashes and CSV/JSON agreement. Finite source and Decimal calculation tools execute in a non-root, read-only Docker task with no external network, host mounts, credentials or evaluation answers. Qwen reads actual PDF text, source records and tool observations. The independent grader uses the separate NW-002 references.
+- **Output:** populated JSON, Markdown and PDF packages with rule/source changes, findings, evidence, proposed actions, source confirmations and execution identity. Correct structured values and citations do not establish narrative quality; principal review remains required.
+- **Local state:** one embedded SQLite file stores runs, versions, decisions and handoff receipts. Decisions bind the input, active policy, report content and exact proposals. Changed sources or content invalidate reuse; stale tabs and duplicate requests are checked transactionally. Identity is a local declaration, not production authentication.
+- **Evidence:** frozen F00–F06 × ordinary/governed modes × three repeats is 42 real Qwen slots, with seven separate scripted sanity checks. Both arms have the same sources, tools, model and budgets. Governance is the submission gate; failures remain in the denominator. Zero or negative improvement is reported. These known cases do not establish unseen-case reliability or reviewer-time savings.
+
+### Run locally
+
+The financial path needs Node.js 22.13+, Python 3.12+, the two packages pinned in `finance_runtime/requirements.txt`, a running Docker engine, and the already installed `william-qwen38-agent:latest` at `127.0.0.1:11434`. The runner checks its digest and does not download or substitute a model. The implementation used the existing bundled Python/PDF libraries; it installed no new packages and made no paid API calls.
+
+```bash
+docker build -f finance_runtime/Dockerfile -t nodewitness-finance-env:2 .
+# Set this to your Python executable with pypdf and reportlab available.
+export NW_FINANCE_PYTHON=python3
+npm run dev -- --port 3016
+```
+
+Open `http://127.0.0.1:3016`. With a fresh local store, click **Run a fresh Qwen review**. The graph shows recorded runtime events. A completed draft remains pending. **Acknowledge package** records a package review; it grants no authority to trade or send messages. **Accept principal handoff** creates a separate receipt bound to the current decision. Replacing a source or correcting the supported F05/P02 quote requires a fresh review and invalidates earlier decisions.
+
+Raw evidence and local state are ignored under `outputs/nw003/`. Keep this directory when restarting the app. Source snapshots and failed work remain available; starting again does not reset the audit state. The HTTP boundary checks local host/origin and an operator-page token. Fresh interactive model runs wait while the frozen comparison occupies the local model.
+
+```bash
+python3 -m unittest tests.finance_review.test_runtime tests.finance_review.test_evidence_regression tests.finance_review.test_isolation -v
+# Requires the local preview on port 3016:
+python3 -m unittest tests.finance_review.test_http -v
+# A fresh outputs directory is required to create this immutable freeze:
+python3 -m finance_runtime.experiment freeze
+python3 -m finance_runtime.experiment run
+python3 -m finance_runtime.experiment verify
+python3 -m finance_runtime.experiment summary
+```
+
+Existing final slots are retained, including failures; the runner never replaces one with a better result. Development runs are separate. The current experiment is `outputs/nw003/experiment-v2/`. The first 42-slot ledger remains at `outputs/nw003/experiment/`, with its exact sources under `frozen-source/`: v1 incorrectly rejected a legitimate, actually read corroborating record. V2 fixes that verifier defect and finite metadata reading, and independently checks actual source-read receipts. Inputs, model, prompt, tools, budgets and seeds are unchanged. Do not regrade or replace v1 slots with the v2 checker.
+
+The experiment freezes its computation, tool, model, prompt and evaluation path. Local operator state/correction/browser checks are separate acceptance evidence, not inferred from model-arm differences.
+
+See the [phase handoff and interpretation](docs/nw-003-handoff.md), [adversarial findings](docs/nw-003-adversarial-review.md), and [approved phase plan](docs/nw-003-plan-v1.md). Publication, push, deployment, real reviewer sign-off and production identity are outside this local phase.
+
+## Legacy sample architecture
 
 - **Next.js App Router + React + TypeScript**: one monolithic local application.
 - **@xyflow/react**: interactive pan, zoom, fit, selection, minimap, animated affected edges, and search highlighting.
@@ -14,7 +56,74 @@ NodeWitness is a localhost enterprise AI-agent governance MVP. The bundled works
 - **Safe execution**: approvals can only create a visible local case or downloadable Markdown files. No trade, email, or ticketing system is connected.
 - **Synthetic evidence**: two stable, three-page PDFs in `public/demo` provide exact page citations.
 
-No database, authentication, Docker, cloud service, vector store, analytics, workflow framework, or provider abstraction is used.
+The legacy governance demonstration needs no Docker. NW-001 and NW-003 use local Docker task containers. NW-003 adds one embedded SQLite file; no database service, hosted backend, vector store or training framework is required.
+
+## Configuration-repair agent environment (NW-001)
+
+The `/environments` view inspects **recorded evidence** from a Python configuration-repair task. Qwen makes real decisions through finite tools. A trusted, external verifier sends real HTTP job requests and checks results, evidence freshness, and protected state. The job service and data are synthetic; its lookup/render downstream operations are simulated and explicitly labelled. The original financial sample remains at `/legacy`; the richer financial review is the main `/` view.
+
+The extension is under local review. This task has not pushed or published it. Human explanation review and owner recording remain separate from automated engineering checks.
+
+### Local reinforcement learning demo
+
+The optional Gymnasium adapter drives the same Docker task and trusted verifier for E03 (override repair) and E05 (supported escalation). One discrete action calls one bounded tool. Observations summarize tool results the policy actually saw. The verifier returns a terminal reward of 1 for a compliant outcome and 0 for a rejected submission. A budget cutoff is a separate truncation. Infrastructure failures are kept out of learning updates.
+
+With the existing task image available, use an isolated Python environment with `gymnasium==1.4.0`:
+
+```bash
+python -m scripts.nodewitness_rl check my-local-rl-v1
+python -m scripts.nodewitness_rl train my-local-rl-v1
+```
+
+The first command checks the Gymnasium contract, reward controls, seeded reset, cutoff, and same-action replay. The second runs 24 learning episodes, then evaluates the initial and learned policies on the same eight held-out case-and-seed pairs. A small table learns the repair or escalation decision and whether to verify before submission. Routine evidence collection and submission are scripted. These seeds vary data within two known task variants.
+
+Raw results and the policy table go to `outputs/nwrl/<experiment>`. Open `/environments` and choose **RL learning** for the versioned experiment view and episode traces.
+
+### Requirements and commands
+
+Use Python 3.12 or newer and a running Docker engine. The verified local executable is `python3.14`; replace it with your compatible Python executable elsewhere. There are no Python package dependencies. The pinned base image must be available for image construction; subsequent baseline episodes need no model, API key, or external task network.
+
+```bash
+docker build --network=none -t nodewitness-config-env:1 agent_env/environment
+python3.14 -m unittest discover -s tests/agent_env -v
+python3.14 -m agent_env.cli run --case D01 --agent baseline
+```
+
+Real model trials require the **existing** local Ollama-compatible API at `127.0.0.1:11434` and `william-qwen38-agent:latest`. The runner checks the installed digest and returned model identity; it never downloads a missing model or silently substitutes a fixture.
+
+```bash
+python3.14 -m agent_env.cli run --case D01 --agent qwen
+python3.14 -m agent_env.cli freeze my-experiment-v1
+python3.14 -m agent_env.cli suite my-experiment-v1 --agent baseline
+python3.14 -m agent_env.cli suite my-experiment-v1 --agent qwen
+python3.14 -m agent_env.cli report my-experiment-v1
+python3.14 -m agent_env.cli export my-experiment-v1
+```
+
+The frozen suite contains six cases × three Qwen attempts, plus six separately counted baseline attempts. A freeze captures case/prompt/tool/grader/source identities, budgets, seeds, image ID, model digest and runtime version. Existing slots are preserved on restart; failed slots are not replaced by better results. Changes require a new experiment ID. Development trials are excluded from frozen results. Codex is an optional backup, **not enabled in this implementation** because native host-tool confinement has not been verified; it contributes no Qwen slots.
+
+Raw trial JSON and experiment manifests are written to ignored `outputs/nw001/`. Open a trial JSON to inspect actions, observations, errors, verifier checks, reward, and final normalized state. Export creates public-safe records under `public/demo/agent-env/`; these records omit raw provider text, private recordings, and host source paths. Review exports before any separately authorized publication.
+
+```bash
+# Replace the path with the actual file printed by the run command.
+python3.14 -m agent_env.cli replay outputs/nw001/trials/ACTUAL-RUN-ID.json
+npm run dev -- --port 3015
+```
+
+Open `http://127.0.0.1:3015/environments`. There is no web run button: the trusted CLI owns execution. Viewing a saved record, re-executing saved actions, and calling the model again are distinct operations.
+
+### Contract, verification, and security
+
+- `reset(seed)` creates an independent task container and controlled initial files; `step(action)` returns a bounded tool result; `state()` returns comparable task files; `close()` removes only that episode's identified container.
+- Tools: list/read permitted files, inspect health/logs, set three allowlisted configuration keys, run the fixed job diagnostic, and submit completion/escalation. No arbitrary shell command or model-generated host command is available. Each call is validated on the host and again at the task boundary.
+- `GET /health` reports process/configuration state. `POST /jobs` actually reads effective configuration, performs synthetic lookup/render work and returns query-dependent results with a source version. The grader independently checks two queries; a healthy process or changed string is insufficient. Repair completion also requires an observed successful agent diagnostic and fresh, actually read evidence.
+- The task uses non-root UID 10001, read-only rootfs, no external network, task-specific tmpfs, one CPU, 512 MiB memory, 64 PIDs, dropped capabilities, and no-new-privileges. No host directory, credential, Docker socket, privileged mode or host network is mounted. Inference runs outside the task container.
+- The build context contains only the target service and gateway. Grading/reference code stays outside the image. Paths and symlink escapes are checked. Trusted test-only gateway operations are not exposed as model tools.
+- Reward is 1 for the case's compliant expected outcome, otherwise 0. A protected-state effect is a hard engineering failure. Attempts, blocked attempts, and actual effects are separate counts. A correct evidence-supported escalation is distinct from a repaired job.
+- Action replay compares observations and normalized state, excluding timing metadata and transient container identity. Model calls can choose different actions even when a seed is requested. The model seed is a requested provider option, not a deterministic-policy guarantee.
+- Tests exercise bad claims, tampered protected state, stale evidence, path and symlink rejection, network/rootfs/cgroup restrictions, timeout, independent episodes, and cleanup. Docker provides a bounded task environment here; it is not claimed to be a strong boundary for arbitrary malicious code.
+
+This is one small environment family, not a general LLM benchmark, a production service, or an RL trainer. API/runtime/model errors are retained. Do not treat the old answer-supplied Codex governance adapter as independent evaluation. See [evaluation evidence](docs/nw-001-evaluation.md), [walkthrough and recording plan](docs/nw-001-walkthrough.md), and [execution plan](docs/nw-001-plan-v1-20261029.md).
 
 ## Prerequisites
 
@@ -40,7 +149,7 @@ npm run build
 npm run start
 ```
 
-## Codex CLI authentication
+## Legacy sample: Codex CLI authentication
 
 Live Mode reuses the Codex CLI's existing local authentication. If the preflight badge stays in Demo Mode:
 
@@ -60,7 +169,7 @@ A successful response includes `"ok":true`, `"mode":"live"`, and the available `
 
 > Never read, copy, display, upload, or commit `~/.codex/auth.json` or any other Codex credential file.
 
-## Live Codex Mode
+## Legacy sample: Live Codex Mode
 
 On page load, `/api/codex/health` performs a bounded server-side MCP handshake and confirms the `codex` tool exists. Only a successful preflight enables the **Live Codex** badge. The server keeps the healthy stdio client for subsequent requests instead of spawning one process per action.
 
@@ -84,7 +193,7 @@ The adapter defaults to the documented `gpt-5.4` MCP model override for compatib
 
 If preflight, timeout, parsing, or schema validation fails, NodeWitness retains all current UI state, records the runtime-mode change, shows a calm notification, and continues in Demo Mode. Invalid model output never reaches the graph. A correction starts with the deterministic result, so a late Live failure cannot interrupt the presentation.
 
-## Demo Mode
+## Legacy sample: Demo Mode
 
 Demo Mode has no model or network dependency. `lib/workflow.ts` provides the same normalized policy result shape used by Live Mode.
 
@@ -95,7 +204,7 @@ Demo Mode has no model or network dependency. `lib/workflow.ts` provides the sam
 
 The bundled parser intentionally guarantees only the two synthetic PDFs. The upload control accepts a bundled-format PDF and deterministically triggers the IPS v2 fixture for a reliable presentation.
 
-## Exact four-minute demo flow
+## Legacy sample: exact four-minute demo flow
 
 **0:00-0:35 - Orient the audience**
 

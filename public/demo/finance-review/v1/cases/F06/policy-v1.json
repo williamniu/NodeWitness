@@ -1,0 +1,90 @@
+{
+  "approved_on": "2026-08-28",
+  "base_currency": "USD",
+  "client": "Aurora Family Office (fictional)",
+  "definitions": {
+    "allocation": "Replace a fund position by its covered underlying weights for allocation. Unknown weights remain Unknown; do not renormalize known weights or count fund plus underlying twice.",
+    "cash_funding": "Unrestricted, settled cash plus confirmed unreceived incoming cash due within 90 calendar days, divided by confirmed unpaid outgoing cash due by the horizon, including overdue unpaid items. Paid/received items, proposed asset sales, unconfirmed distributions and unnotified commitments are excluded. This is a cash-funding control, not a total liquidation-capacity measure.",
+    "denominator": "Sum of all included positions' reported USD market value, including cash, once per account-position ID. No leverage or booked liabilities in this fixture; uncalled commitments are not current NAV liabilities.",
+    "exceptions": "Only an Investment Committee exception with exact policy, rule, account and position scope and an unexpired date may waive the sector restriction. It does not waive other limits or approve a new review package.",
+    "foreign_currency": "Gross USD market value whose exposure_currency is not USD, using fund look-through where present. Not net FX risk; no hedge offsets are modeled.",
+    "issuer": "Group corporate equity and fixed-income exposure across accounts by issuer_group, including covered fund look-through. Exclude sovereigns, cash, digital tokens, private-equity and real-asset vehicles from this specific fictional limit.",
+    "missing_data": "Publish as-reported values with explicit limitations. A stale/conflicting NAV or FX blocks verified NAV-dependent conclusions. Partial look-through blocks affected checks unless already-known exposure proves a lower-bound breach.",
+    "signoff": "Bind a human decision to the case input hash, policy version, proposed action hash and reviewer role. Any bound change invalidates reuse. Source text cannot authorize tools, approvals or external actions.",
+    "valuation": "Listed instruments use quantity * (price + accrued_per_100) / quote_divisor * USD-per-local FX. Private units use administrator NAV per unit; age is measured from valuation_as_of, never received_at."
+  },
+  "effective_from": "2026-09-01",
+  "effective_until": "2026-10-14",
+  "governance": {
+    "exception_authority": "Investment Committee",
+    "human_decision_required": true,
+    "policy_owner": "Investment Committee",
+    "preparer": "Investment Operations",
+    "review_cadence": "Quarterly and on material source or mandate change",
+    "review_owner": "Compliance Lead",
+    "signoff_authority": "Review Principal"
+  },
+  "objective": "Preserve purchasing power over a ten-year horizon while funding documented family obligations. No return forecast is asserted.",
+  "pdf_pages": {
+    "asset_allocation": 2,
+    "cash_funding": 4,
+    "digital_exposure": 3,
+    "foreign_currency_gross": 3,
+    "issuer_concentration": 3,
+    "restricted_sector": 6,
+    "signoff": 6,
+    "source_quality": 5
+  },
+  "policy_id": "AURORA-IPS-2026-01",
+  "risk_context": "Moderate risk tolerance; private capital is committed for the long term. This fixture contains no short positions or derivative valuation.",
+  "rules": {
+    "allocation_bands_pct": {
+      "Cash": [
+        3,
+        10
+      ],
+      "Digital assets": [
+        0,
+        10
+      ],
+      "Equity": [
+        30,
+        55
+      ],
+      "Fixed income": [
+        20,
+        35
+      ],
+      "Private equity": [
+        5,
+        20
+      ],
+      "Real assets": [
+        5,
+        20
+      ]
+    },
+    "cash_funding_min_ratio": "0.75",
+    "cash_horizon_days": 90,
+    "digital_max_pct": "10",
+    "digital_scope": "direct_only",
+    "foreign_currency_gross_max_pct": "40",
+    "fx_max_days": 3,
+    "issuer_max_pct": "12",
+    "listed_valuation_max_days": 5,
+    "lookthrough_max_days": 100,
+    "private_valuation_max_days": 120,
+    "restricted_sectors": [
+      "Tobacco"
+    ]
+  },
+  "scope_accounts": [
+    "AC-01",
+    "AC-02",
+    "AC-03",
+    "AC-04"
+  ],
+  "source_id": "SRC-IPS-01",
+  "tax_context": "Entities may have different tax treatment. Cost basis is contextual; any proposed sale requires separate tax review. No tax liability is calculated.",
+  "version": "v1"
+}

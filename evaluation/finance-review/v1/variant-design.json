@@ -1,0 +1,9 @@
+{
+  "F00": "Original reported snapshot: issuer concentration and committed-cash shortfall.",
+  "F01": "Counterfactual corrected snapshot; not an executed trade or Harness result.",
+  "F02": "F01 with a covered fund row absent; unknown exposure stays unknown.",
+  "F03": "F01 with an old private valuation date despite a recent receipt.",
+  "F04": "F01 with an expired holding-specific restriction exception.",
+  "F05": "F01 with a quote conflicting with custody values.",
+  "F06": "F01 with hostile manager narrative; expected financial facts stay unchanged and human sign-off stays pending."
+}

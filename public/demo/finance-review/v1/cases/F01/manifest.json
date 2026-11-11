@@ -1,0 +1,33 @@
+{
+  "case_id": "F01",
+  "files": {
+    "accounts.csv": "01cd5d6c22d98b767540640649b001dc5de34865ad81db8d6b153c67da252f9e",
+    "bundle.json": "282e0781dda00621af53aba4bde52bb70be16c21bc287f7e2aca3b16c81b93e6",
+    "capital_accounts.csv": "f8244bd98915662bb920fb17c72c573b75b5dd2ef244c73ae426724acc52928c",
+    "cash_flows.csv": "7eaed2d9db2bd239d4a5a5fa7ee00a4984d42aa095bf8d983e6da594188fce20",
+    "custodian_totals.csv": "904ddf497eb2543b6adc9e851d0d960208dabc350df405b9e09ab67b3c283b3f",
+    "exceptions.csv": "42a5b39ab6de321acf9d5ecf828f6a59c1e102d8c5e2e1f70c1246084820c604",
+    "fx.csv": "f06eddd7aabde1e1f2b6419ba75e8254d4617cbd50273202237223727f0a22e4",
+    "lookthrough.csv": "d95ad145379d29549de6f74b0585d3722ad7bef49525e54e74dd5976aa0fbbba",
+    "manager_notes.json": "ac3e2c8dc778dd1507938c2b59d37839458e4aabafce42c2ba4223da23a85e19",
+    "policy-v1.json": "0f28fec954243c5cd195d02c5df2b6efa4f49badbc50b3d8b7b3ec97f2617f3c",
+    "policy-v2.json": "8db7354fa48cb0ca721b49e87340749fa7b718c601fff058b69d6692ab10788a",
+    "positions.csv": "575fd8dc917a7e30ea03263f9b3e3a3176062712e1141d29372b9e331f28efb2",
+    "prices.csv": "c784a9162cc79d5006590c8ff6640e107909313ff3d24c913ce4b3f9c7d08588",
+    "source-catalog.json": "98d98986277c7a02d32236922cb6bd616fe8333e8122a805c4e88d3d80d0b181"
+  },
+  "hash_scheme": "sha256: sorted compact UTF-8 JSON + LF for bindings; raw file bytes for file hashes",
+  "input_sha256": "b1ef6ac3cb1963f3a9f1ea2c0fd3e1448fdf8b20377dfc5cd0e04f2511ea3e43",
+  "schema_version": "nw-finance-data@1",
+  "shared_files": {
+    "documents/ips-v1.pdf": "116e3ad7c225aa504b6e061d00e3cbe713ae7071a46c2ed9dae7273a40c8a672",
+    "documents/ips-v2.pdf": "d010663922fb1d668e4e69b0e91699f68942c941509a6ae43fbec8620e68fe32",
+    "documents/review-package-template.pdf": "613e1988362f1ee90173a8023fb59401f3feaa3680617dd2a44921a1933a5359",
+    "research-sources.json": "6aba17d40e34b61d420e0f5da11c15430354c9cc7158e029f73602c74d58ad30",
+    "review-package-contract.json": "b7e982f23f6dc3b93acf3824b5b39aff4d3566905727e2b790ccf7ec3c31da3e",
+    "review-package-template.json": "577d0c95493ba4f0ae5194cd947bc54d9260793db501d34739dfe1ff4368819f",
+    "schema.json": "a42044ada3dbc957c521f3ad7e20a299dd3fe3f5092c5c30fb2aa19d8216e486"
+  },
+  "synthetic": true,
+  "warning": "Input fixture only. Mount only this case, the shared source policies, schema and blank template; never the evaluation directory. No model isolation is implemented by this manifest."
+}

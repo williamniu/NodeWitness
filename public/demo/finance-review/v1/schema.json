@@ -1,0 +1,521 @@
+{
+  "canonical_file": "bundle.json",
+  "cash_flow_date_window": "incoming: review date through +90 days inclusive; outgoing: all confirmed unpaid due by the horizon, including overdue",
+  "csv_encoding": "UTF-8; booleans are lowercase true/false; decimals are exact strings",
+  "schema_version": "nw-finance-data@1",
+  "tables": {
+    "accounts": {
+      "account_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "custodian": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "entity": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "included": {
+        "nullable": false,
+        "type": "boolean",
+        "unit": "source metadata or identifier"
+      },
+      "mandate": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      }
+    },
+    "capital_accounts": {
+      "commitment": {
+        "nullable": false,
+        "type": "decimal_string",
+        "unit": "currency specified by row"
+      },
+      "contributed_itd": {
+        "nullable": false,
+        "type": "decimal_string",
+        "unit": "currency specified by row"
+      },
+      "contributions_qtd": {
+        "nullable": false,
+        "type": "decimal_string",
+        "unit": "currency specified by row"
+      },
+      "currency": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "distributed_itd": {
+        "nullable": false,
+        "type": "decimal_string",
+        "unit": "currency specified by row"
+      },
+      "distributions_qtd": {
+        "nullable": false,
+        "type": "decimal_string",
+        "unit": "currency specified by row"
+      },
+      "ending_nav": {
+        "nullable": false,
+        "type": "decimal_string",
+        "unit": "currency specified by row"
+      },
+      "investment_income_qtd": {
+        "nullable": false,
+        "type": "decimal_string",
+        "unit": "currency specified by row"
+      },
+      "management_fees_qtd": {
+        "nullable": false,
+        "type": "decimal_string",
+        "unit": "currency specified by row"
+      },
+      "opening_nav": {
+        "nullable": false,
+        "type": "decimal_string",
+        "unit": "currency specified by row"
+      },
+      "other_expenses_qtd": {
+        "nullable": false,
+        "type": "decimal_string",
+        "unit": "currency specified by row"
+      },
+      "period_end": {
+        "nullable": false,
+        "type": "string",
+        "unit": "ISO calendar date"
+      },
+      "period_start": {
+        "nullable": false,
+        "type": "string",
+        "unit": "ISO calendar date"
+      },
+      "position_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "realized_gain_qtd": {
+        "nullable": false,
+        "type": "decimal_string",
+        "unit": "currency specified by row"
+      },
+      "received_at": {
+        "nullable": false,
+        "type": "string",
+        "unit": "UTC timestamp; not a valuation date"
+      },
+      "source_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "unfunded_commitment": {
+        "nullable": false,
+        "type": "decimal_string",
+        "unit": "currency specified by row"
+      },
+      "unrealized_gain_qtd": {
+        "nullable": false,
+        "type": "decimal_string",
+        "unit": "currency specified by row"
+      }
+    },
+    "cash_flows": {
+      "amount": {
+        "nullable": false,
+        "type": "decimal_string",
+        "unit": "currency specified by row"
+      },
+      "category": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "confirmed": {
+        "nullable": false,
+        "type": "boolean",
+        "unit": "source metadata or identifier"
+      },
+      "currency": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "direction": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "due_date": {
+        "nullable": false,
+        "type": "string",
+        "unit": "ISO calendar date"
+      },
+      "flow_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "fund_position_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "notice_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "received_at": {
+        "nullable": false,
+        "type": "string",
+        "unit": "UTC timestamp; not a valuation date"
+      },
+      "settlement_status": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "source_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      }
+    },
+    "custodian_totals": {
+      "account_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "as_of": {
+        "nullable": false,
+        "type": "string",
+        "unit": "ISO calendar date"
+      },
+      "reported_total_usd": {
+        "nullable": false,
+        "type": "decimal_string",
+        "unit": "USD"
+      },
+      "source_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      }
+    },
+    "exceptions": {
+      "account_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "approved_on": {
+        "nullable": false,
+        "type": "string",
+        "unit": "ISO calendar date"
+      },
+      "approved_role": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "exception_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "policy_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "position_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "reason": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "rule_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "source_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "valid_until": {
+        "nullable": false,
+        "type": "string",
+        "unit": "ISO calendar date"
+      }
+    },
+    "fx": {
+      "as_of": {
+        "nullable": false,
+        "type": "string",
+        "unit": "ISO calendar date"
+      },
+      "currency": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "source_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "usd_per_unit": {
+        "nullable": false,
+        "type": "decimal_string",
+        "unit": "USD per one unit of local currency"
+      }
+    },
+    "lookthrough": {
+      "as_of": {
+        "nullable": false,
+        "type": "string",
+        "unit": "ISO calendar date"
+      },
+      "asset_class": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "coverage_basis": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "exposure_currency": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "issuer_group": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "issuer_type": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "position_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "row_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "sector": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "source_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "weight": {
+        "nullable": false,
+        "type": "decimal_string",
+        "unit": "fraction in [0,1]"
+      }
+    },
+    "positions": {
+      "account_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "asset_class": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "cost_basis_local": {
+        "nullable": false,
+        "type": "decimal_string",
+        "unit": "position currency"
+      },
+      "currency": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "exposure_currency": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "instrument_type": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "issuer_group": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "issuer_type": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "liquidity_terms": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "name": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "position_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "price_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "quantity": {
+        "nullable": false,
+        "type": "decimal_string",
+        "unit": "instrument units; bonds are face amount"
+      },
+      "received_at": {
+        "nullable": false,
+        "type": "string",
+        "unit": "UTC timestamp; not a valuation date"
+      },
+      "redemption_days": {
+        "nullable": true,
+        "type": "integer",
+        "unit": "calendar days; does not create a confirmed receipt"
+      },
+      "redemption_note": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "reported_market_value_local": {
+        "nullable": false,
+        "type": "decimal_string",
+        "unit": "position currency"
+      },
+      "reported_market_value_usd": {
+        "nullable": false,
+        "type": "decimal_string",
+        "unit": "USD"
+      },
+      "restricted": {
+        "nullable": false,
+        "type": "boolean",
+        "unit": "source metadata or identifier"
+      },
+      "sector": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "security_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "settled": {
+        "nullable": false,
+        "type": "boolean",
+        "unit": "source metadata or identifier"
+      },
+      "source_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "valuation_as_of": {
+        "nullable": false,
+        "type": "string",
+        "unit": "ISO calendar date"
+      },
+      "valuation_method": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      }
+    },
+    "prices": {
+      "accrued_per_100": {
+        "nullable": false,
+        "type": "decimal_string",
+        "unit": "local currency per 100 face"
+      },
+      "currency": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "price": {
+        "nullable": false,
+        "type": "decimal_string",
+        "unit": "local currency per unit or per 100 face"
+      },
+      "price_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "quote_divisor": {
+        "nullable": false,
+        "type": "integer",
+        "unit": "1 for unit quotes; 100 for bond face quotes"
+      },
+      "received_at": {
+        "nullable": false,
+        "type": "string",
+        "unit": "UTC timestamp; not a valuation date"
+      },
+      "security_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "source_id": {
+        "nullable": false,
+        "type": "string",
+        "unit": "source metadata or identifier"
+      },
+      "valuation_as_of": {
+        "nullable": false,
+        "type": "string",
+        "unit": "ISO calendar date"
+      }
+    }
+  }
+}
