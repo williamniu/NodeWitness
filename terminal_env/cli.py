@@ -47,6 +47,9 @@ def trial(task_id, agent, seed, experiment=None):
             record["events"] = run_model(env, adapter, seed)
         record["verifier"] = env.verify()
         record["status"] = "passed" if record["verifier"]["passed"] else "failed"
+        if env.reason == "model_error":
+            # The workspace is still graded for diagnosis, but a provider failure is never a pass.
+            record["status"] = "error"
     except Exception as exc:
         record["status"] = "error"
         record["errors"].append({"kind": type(exc).__name__, "detail": str(exc)[:2000]})
@@ -57,7 +60,9 @@ def trial(task_id, agent, seed, experiment=None):
         env.close()
         record["duration_seconds"] = round(time.monotonic() - started, 2)
         OUTPUT.mkdir(parents=True, exist_ok=True)
-        (OUTPUT / (run_id + ".json")).write_text(json.dumps(record, indent=1, ensure_ascii=False) + "\n")
+        temporary = OUTPUT / (run_id + ".json.tmp")
+        temporary.write_text(json.dumps(record, indent=1, ensure_ascii=False) + "\n")
+        temporary.replace(OUTPUT / (run_id + ".json"))  # atomic: readers never see half a file
     print(json.dumps({"run_id": run_id, "status": record["status"], "steps": len(record["steps"]),
                       "seconds": record["duration_seconds"],
                       "failed_checks": [k for k, v in record.get("verifier", {}).get("checks", {}).items() if not v["passed"]]}),

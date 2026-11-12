@@ -150,7 +150,7 @@ def check(sandbox, seed):
         path = "/tmp/hidden/%s/app.db" % key
         snapshots, codes = [], []
         for _ in range(2):
-            codes.append(sandbox.exec("python3 -I /workspace/migrate.py " + path, timeout=30, workdir="/tmp")["exit_code"])
+            codes.append(sandbox.exec("python3 -E -s migrate.py " + path, timeout=30)["exit_code"])
             dump = sandbox.exec("base64 -w0 " + path)
             snapshots.append(inspect(base64.b64decode(dump["stdout"])) if dump["exit_code"] == 0 else {"error": "missing"})
         first = snapshots[0]
@@ -166,7 +166,7 @@ def check(sandbox, seed):
         checks["hidden_db_%s_idempotent" % key] = {"passed": codes[1] == 0 and snapshots[1] == first}
     # C has one unparseable amount: the migration must fail and change nothing.
     original = make_v1(seed + BAD[0], **BAD[1])[0]
-    code = sandbox.exec("python3 -I /workspace/migrate.py /tmp/hidden/C/app.db", timeout=30, workdir="/tmp")["exit_code"]
+    code = sandbox.exec("python3 -E -s migrate.py /tmp/hidden/C/app.db", timeout=30)["exit_code"]
     dump = sandbox.exec("base64 -w0 /tmp/hidden/C/app.db")
     after = raw_state(base64.b64decode(dump["stdout"])) if dump["exit_code"] == 0 else None
     checks["hidden_db_C_bad_amount_rejected"] = {"passed": code != 0, "exit_code": code}

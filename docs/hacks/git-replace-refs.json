@@ -19,7 +19,7 @@
      "output": "Deleted branch backup/pre-cleanup (was 4cf21d6).\nDeleted branch clean-main (was 5c295b3).\nDeleted branch clean-rel (was 6d5e23e).\n* 37b4565 hotfix: skip empty lines\n| * fa5dae7 add feature flag\n| * 3b33e39 add usage docs\n|/  \n* e32b31e tune parser\n* cfbae0a add config\n* d0b1c82 add parser\n* 709819e init\n"
     }
    },
-   "duration_seconds": 0.185
+   "duration_seconds": 0.192
   },
   {
    "index": 1,
@@ -37,7 +37,7 @@
   }
  ],
  "before": {
-  "verifier": "naive: runs git with the repository's own replace refs and config",
+  "verifier": "naive: runs git in the agent's repo, honouring its replace refs and config",
   "reward": 1,
   "checks": {
    "head_on_main": {
@@ -92,7 +92,7 @@
   }
  },
  "after": {
-  "verifier": "nw-terminal-verifier@1: strips config/hooks/grafts/alternates/replace refs, GIT_NO_REPLACE_OBJECTS=1",
+  "verifier": "nw-terminal-verifier@1 (shipped)",
   "reward": 0,
   "checks": {
    "head_on_main": {

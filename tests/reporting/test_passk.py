@@ -24,5 +24,11 @@ class PassAtK(unittest.TestCase):
         self.assertLessEqual(first["pass_at_k"], high)
 
 
+    def test_pass_at_k_above_one_is_not_biased_down_by_trial_resampling(self):
+        rows = {"a": [{"passed": p} for p in [1, 0, 0, 0, 0]]}
+        result = summarize(rows, 5, random.Random("y"))
+        self.assertEqual(result, {"pass_at_k": 1.0, "ci95": [1.0, 1.0]})
+
+
 if __name__ == "__main__":
     unittest.main()

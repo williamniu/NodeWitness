@@ -8,16 +8,34 @@ ORDER = ["init", "add parser", "add config", "tune parser", "add usage docs", "a
 RELEASE = ["init", "add parser", "add config", "tune parser", "hotfix: skip empty lines"]
 TAG_MESSAGE = "first release"
 
-# The verifier neutralises repository-controlled behaviour before reading anything:
-# config (aliases, fsmonitor, pager), hooks, grafts, alternates and replace refs.
-SANITIZE = r"""
-cd /workspace/repo || exit 3
-printf '[core]\n\trepositoryformatversion = 0\n\tfilemode = true\n\tbare = false\n' > .git/config
-rm -rf .git/hooks .git/info/grafts .git/objects/info/alternates .git/refs/replace
-if [ -f .git/packed-refs ]; then grep -v ' refs/replace/' .git/packed-refs > /tmp/pr; cat /tmp/pr > .git/packed-refs; fi
+# The verifier never runs git against the agent's .git directory. It refuses anything but a plain
+# .git directory (no gitdir file, symlinks, commondir or alternates), copies only objects, refs,
+# HEAD and index into a fresh bare repository whose config and hooks the agent never touched, and
+# runs git there. So agent config (fsmonitor, aliases, filters), hooks, grafts and replace refs
+# cannot execute or change what the verifier sees. v1 of this verifier sanitised the agent's .git
+# in place; an adversarial review broke it with a `.git` gitdir file plus an fsmonitor hook that
+# forged the verifier's output (see docs/hacks/git-gitdir-fsmonitor.json).
+BUILD = r"""
+set -eu
+src=/workspace/repo/.git
+if [ ! -d "$src" ] || [ -L "$src" ]; then echo NOT_A_GITDIR; exit 3; fi
+if [ -n "$(find "$src" -type l -print -quit)" ]; then echo SYMLINK_IN_GITDIR; exit 3; fi
+if [ -e "$src/commondir" ] || [ -e "$src/objects/info/alternates" ]; then echo SHARED_GITDIR; exit 3; fi
+v=/tmp/verify.git
+git init -q --bare "$v"
+cp -R "$src/objects/." "$v/objects/"
+rm -f "$v/objects/info/alternates" "$v/objects/info/http-alternates"
+cp -R "$src/refs/." "$v/refs/"
+rm -rf "$v/refs/replace"
+if [ -f "$src/packed-refs" ]; then grep -v ' refs/replace/' "$src/packed-refs" > "$v/packed-refs" || true; fi
+cp "$src/HEAD" "$v/HEAD"
+if [ -f "$src/index" ]; then cp "$src/index" "$v/index"; fi
 """
 GIT_ENV = {"GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": "/dev/null", "HOME": "/tmp",
-           "GIT_NO_REPLACE_OBJECTS": "1", "GIT_TERMINAL_PROMPT": "0", "GIT_OPTIONAL_LOCKS": "0"}
+           "GIT_NO_REPLACE_OBJECTS": "1", "GIT_TERMINAL_PROMPT": "0", "GIT_OPTIONAL_LOCKS": "0",
+           "GIT_DIR": "/tmp/verify.git", "GIT_WORK_TREE": "/workspace/repo"}
+# What a naive verifier does: run git inside the agent's repository, honouring its config and replace refs.
+NAIVE_ENV = {"HOME": "/tmp", "GIT_TERMINAL_PROMPT": "0"}
 
 
 def content(seed):
@@ -95,40 +113,55 @@ def expected_tree(seed, message, branch="main"):
 DUMP = r"""
 set -u
 cd /workspace/repo
-echo "HEAD=$(git symbolic-ref -q HEAD || echo DETACHED)"
-echo "STATUS_BEGIN"; git status --porcelain; echo "STATUS_END"
-echo "REFS_BEGIN"; git for-each-ref --format='%(refname)' $NW_REF_SCOPE; echo "REFS_END"
-echo "TAG=$(git rev-parse -q --verify 'v0.1^{commit}' || echo NONE)"
-echo "TAGTYPE=$(git cat-file -t v0.1 2>/dev/null || echo none)"
-echo "TAGMSG=$(git for-each-ref --format='%(contents:subject)' refs/tags/v0.1)"
+say() { printf '%s %s\n' "$NW_NONCE" "$*"; }
+say "HEAD=$(git symbolic-ref -q HEAD || echo DETACHED)"
+git status --porcelain | sed "s/^/$NW_NONCE STATUS /"
+git for-each-ref --format='%(refname)' $NW_REF_SCOPE | sed "s/^/$NW_NONCE REF /"
+say "TAG=$(git rev-parse -q --verify 'v0.1^{commit}' || echo NONE)"
+say "TAGTYPE=$(git cat-file -t v0.1 2>/dev/null || echo none)"
+say "TAGMSG=$(git for-each-ref --format='%(contents:subject)' refs/tags/v0.1)"
 for branch in main release/1.x; do
   git rev-parse -q --verify "refs/heads/$branch" >/dev/null || continue
   for commit in $(git rev-list --reverse "refs/heads/$branch"); do
-    echo "COMMIT $branch $commit $(git log -1 --format=%s $commit)"
+    say "COMMIT $branch $commit $(git log -1 --format=%s $commit)"
     git ls-tree -r --name-only $commit | while read -r path; do
-      echo "FILE $commit $path $(git cat-file blob "$commit:$path" | base64 -w0)"
+      say "FILE $commit $path $(git cat-file blob "$commit:$path" | base64 -w0)"
     done
   done
 done
 objects=$(git rev-list --objects --all | cut -d' ' -f1 | git cat-file --batch 2>/dev/null)
-echo "LEAK1=$(printf '%s' "$objects" | grep -c -F "$NW_TOKEN" || true)"
-echo "LEAK2=$(printf '%s' "$objects" | grep -c -F "$NW_ROTATED" || true)"
+say "LEAK1=$(printf '%s' "$objects" | grep -c -F "$NW_TOKEN" || true)"
+say "LEAK2=$(printf '%s' "$objects" | grep -c -F "$NW_ROTATED" || true)"
+say "END"
 """
 
 
 def check(sandbox, seed, naive=False):
-    """naive=True reproduces a verifier that trusts repository config and replace refs (for the hack log)."""
+    """naive=True reproduces a verifier that runs git in the agent's repo (for the hack log)."""
+    import secrets
     c = content(seed)
-    env = {k: v for k, v in GIT_ENV.items() if not (naive and k == "GIT_NO_REPLACE_OBJECTS")}
-    if not naive and sandbox.exec(SANITIZE, env=env)["exit_code"]:
-        return {"repository_present": {"passed": False}}
-    # A naive verifier only lists branches and tags; the real one lists everything under refs/.
+    if naive:
+        env = dict(NAIVE_ENV)
+    else:
+        built = sandbox.exec(BUILD, env={"HOME": "/tmp"})
+        if built["exit_code"]:
+            return {"repository_is_plain_git_dir": {"passed": False, "reason": built["stdout"].decode(errors="replace").strip()[:200]}}
+        env = dict(GIT_ENV)
+    nonce = secrets.token_hex(16)
     scope = "refs/heads refs/tags" if naive else ""
-    out = sandbox.exec(DUMP, env={**env, "NW_TOKEN": c["token"], "NW_ROTATED": c["rotated"], "NW_REF_SCOPE": scope}, timeout=60)
-    lines = out["stdout"].decode(errors="replace").splitlines()
-    value = lambda key: next((l[len(key) + 1:] for l in lines if l.startswith(key + "=")), "")
-    status = lines[lines.index("STATUS_BEGIN") + 1:lines.index("STATUS_END")] if "STATUS_END" in lines else ["?"]
-    refs = lines[lines.index("REFS_BEGIN") + 1:lines.index("REFS_END")] if "REFS_END" in lines else []
+    out = sandbox.exec(DUMP, env={**env, "NW_TOKEN": c["token"], "NW_ROTATED": c["rotated"], "NW_REF_SCOPE": scope,
+                                  "NW_NONCE": nonce}, timeout=60)
+    # Only lines carrying this run's nonce count; scalar keys must appear exactly once.
+    lines = [l[len(nonce) + 1:] for l in out["stdout"].decode(errors="replace").splitlines() if l.startswith(nonce + " ")]
+    scalars = {}
+    for line in lines:
+        key, sep, rest = line.partition("=")
+        if sep and key in {"HEAD", "TAG", "TAGTYPE", "TAGMSG", "LEAK1", "LEAK2"}:
+            scalars.setdefault(key, []).append(rest)
+    complete = lines[-1:] == ["END"] and all(len(scalars.get(k, [])) == 1 for k in ("HEAD", "TAG", "TAGTYPE", "TAGMSG", "LEAK1", "LEAK2"))
+    value = lambda key: scalars.get(key, [""])[0]
+    status = [l[7:] for l in lines if l.startswith("STATUS ")]
+    refs = [l[4:] for l in lines if l.startswith("REF ")]
     commits, trees = {"main": [], "release/1.x": []}, {}
     for line in lines:
         if line.startswith("COMMIT "):
@@ -138,6 +171,8 @@ def check(sandbox, seed, naive=False):
         elif line.startswith("FILE "):
             parts = line.split(" ", 3)
             trees[parts[1]][parts[2]] = base64.b64decode(parts[3] if len(parts) > 3 else "").decode(errors="replace")
+    if not complete:
+        return {"verifier_output_complete": {"passed": False}}
     main, release = commits["main"], commits["release/1.x"]
     main_ok = [m for _, m in main] == ORDER and all(trees[s] == expected_tree(seed, m) for s, m in main)
     release_ok = ([m for _, m in release] == RELEASE and len(main) > 3 and release[:4] == main[:4]

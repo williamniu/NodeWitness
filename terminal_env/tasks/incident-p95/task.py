@@ -137,7 +137,8 @@ def check(sandbox, seed):
     checks = {"script_exists": {"passed": exists}}
     for key, make in HIDDEN.items():
         expected = expected_csv(make(seed)[0])
-        run = sandbox.exec("python3 -I /workspace/p95.py /tmp/hidden/" + key, timeout=30, workdir="/tmp")
+        # Run as documented (`python3 p95.py LOGDIR` from /workspace) so sibling modules import.
+        run = sandbox.exec("python3 -E -s p95.py /tmp/hidden/" + key, timeout=30)
         got = run["stdout"].decode(errors="replace").replace("\r\n", "\n").strip()
         checks["hidden_logs_" + key] = {"passed": run["exit_code"] == 0 and got == expected,
                                         "exit_code": run["exit_code"], "first_mismatch": _diff(got, expected)}

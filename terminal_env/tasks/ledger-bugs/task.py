@@ -10,8 +10,29 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 AMOUNT = re.compile(r"^\s*[+-]?\d+(\.\d+)?\s*$")
 
+# Typed encoding shared by the in-container harness and the host, so 268.0 != 268 and True != 1.
+ENCODE = r"""
+def encode(v):
+    if isinstance(v, bool):
+        return ["bool", v]
+    if isinstance(v, int):
+        return ["int", v]
+    if isinstance(v, float):
+        return ["float", v]
+    if isinstance(v, str):
+        return ["str", v]
+    if isinstance(v, list):
+        return ["list", [encode(x) for x in v]]
+    if hasattr(v, "isoformat"):
+        return ["datetime", v.isoformat(), repr(v.tzinfo)]
+    return ["other", type(v).__name__, repr(v)[:200]]
+"""
+namespace = {}
+exec(ENCODE, namespace)
+encode = namespace["encode"]
+
 # Runs inside the fresh verifier container; piped through stdin, never stored there.
-HARNESS = r'''
+HARNESS = ENCODE + r"""
 import json, sys
 sys.path.insert(0, "/workspace")
 cases = json.load(open(sys.argv[1]))
@@ -20,14 +41,13 @@ for fn, args in cases:
     module, name = fn.rsplit(".", 1)
     try:
         func = getattr(__import__(module, fromlist=[name]), name)
-        value = func(*args)
-        if hasattr(value, "isoformat"):
-            value = {"datetime": value.isoformat(), "tz": repr(value.tzinfo)}
-        out.append({"value": value})
+        out.append({"value": encode(func(*args))})
+    except ValueError:            # the spec says "raises ValueError": subclasses qualify
+        out.append({"error": "ValueError"})
     except Exception as exc:
         out.append({"error": type(exc).__name__})
 print(json.dumps(out))
-'''
+"""
 
 
 def workspace(seed):
@@ -115,10 +135,7 @@ def expected(seed):
     rows = []
     for fn, args in cases(seed):
         try:
-            value = REFERENCE[fn](*args)
-            if isinstance(value, dt.datetime):
-                value = {"datetime": value.isoformat(), "tz": repr(value.tzinfo)}
-            rows.append({"value": value})
+            rows.append({"value": encode(REFERENCE[fn](*args))})
         except ValueError:
             rows.append({"error": "ValueError"})
     return rows

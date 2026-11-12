@@ -54,12 +54,14 @@ The config environment above gives the agent 7 JSON tools. [`terminal_env/`](ter
 |---|---|---|
 | [`incident-p95`](terminal_env/tasks/incident-p95/instruction.md) | Write `p95.py` over rotated, gzipped (one truncated), two-format logs with retries, mixed UTC offsets, mixed-case users and `"412ms"` latencies | Runs the script on 3 unseen log sets |
 | [`ledger-bugs`](terminal_env/tasks/ledger-bugs/instruction.md) | Fix a package to its spec (incl. largest-remainder `allocate`); visible tests cover 1 of 5 bugs | Calls every function on 94 unseen inputs |
-| [`git-rescue`](terminal_env/tasks/git-rescue/instruction.md) | Recover a reset commit; purge a leaked token from every branch and tag | Reads objects and refs with repo config, hooks and replace refs stripped |
+| [`git-rescue`](terminal_env/tasks/git-rescue/instruction.md) | Recover a reset commit; purge a leaked token from every branch and tag | Copies only objects, refs, HEAD and index into a fresh bare repo, so the agent's git config, hooks and replace refs never run |
 | [`sqlite-migration`](terminal_env/tasks/sqlite-migration/instruction.md) | Write an idempotent, all-or-nothing v1→v2 migration (dedupe emails, split names, parse money incl. `($12.50)` refunds, drop orphans) | Migrates 2 unseen databases twice; a third with a bad amount must fail and keep its schema, rows and `user_version` |
 
 **Verification rule:** the agent's `/workspace` is copied out as bytes and loaded into a *fresh* container that never ran agent processes. Hidden inputs exist only there; expected values exist only on the host. So background processes, PATH tricks and hard-coded answers do not carry over.
 
 **Hack log:** [`docs/hacks/git-replace-refs.json`](docs/hacks/git-replace-refs.json). A red-team trajectory rewrites a side branch, then uses `git replace` so main's leaky commits *display* as clean ones. A verifier that runs git with the repo's own replace refs scores it reward 1 on all 9 checks; the shipped verifier strips replace refs and scores it 0. Regenerate with `python3 -m terminal_env.redteam`; `test_git_replace_refs_cannot_fake_a_clean_history` asserts both sides.
+
+**Hack log 2, found by an independent adversarial-review agent:** [`docs/hacks/git-gitdir-fsmonitor.json`](docs/hacks/git-gitdir-fsmonitor.json). The git verifier I first shipped (commit `edac62e`) sanitised the agent's `.git` in place. The agent replaced `.git` with a `gitdir:` file, so sanitising silently did nothing; its `core.fsmonitor` hook then ran inside the verifier's `git status` and wrote forged result lines into git's stdout. Reward 1 with the token still reachable. The shipped verifier now refuses anything but a plain `.git` directory, rebuilds a fresh bare repo from objects and refs, and accepts only output lines tagged with a per-run nonce. `test_gitdir_file_and_fsmonitor_cannot_forge_the_verdict` and `test_agent_git_config_and_hooks_never_run_during_verification` keep it fixed.
 
 ## Three commands
 

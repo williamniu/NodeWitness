@@ -18,4 +18,4 @@ Keep the history intact:
 
 When you finish, `HEAD` must be on `main` and the working tree must be clean (`git status --porcelain` prints nothing).
 
-Hidden tests inspect the repository's objects and refs directly, with your repository config, hooks and replace refs ignored.
+Hidden tests copy only the repository's objects, refs, `HEAD` and index into a fresh repository and inspect them there. Your repository config, hooks and replace refs are ignored. `.git` must be a plain directory.

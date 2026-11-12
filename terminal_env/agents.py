@@ -58,7 +58,7 @@ def run_model(env, adapter, seed, max_decisions=40):
             break
         try:
             message, calls, usage = adapter.decide(messages, seed)
-        except Exception as exc:  # provider/network failure: recorded, never counted as a pass
+        except Exception as exc:  # provider/network failure: recorded; cli.py marks the trial status 'error'
             events.append({"decision": decision, "error": type(exc).__name__ + ": " + str(exc)[:500]})
             env.truncated, env.reason = True, "model_error"
             break

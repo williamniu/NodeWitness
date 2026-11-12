@@ -5,7 +5,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from terminal_env.redteam import git_replace_attack
+from terminal_env.redteam import git_replace_attack, gitdir_forgery_attack
 from terminal_env.runner import TASK_IDS, TerminalEnvironment, run_nothing, run_oracle
 
 SEED = 202  # not the development seed
@@ -105,6 +105,30 @@ class KnownHacks(unittest.TestCase):
         self.assertFalse(verdict["passed"])
         self.assertFalse(verdict["checks"]["tokens_unreachable_from_all_refs"]["passed"])
         self.assertFalse(verdict["checks"]["secret_file_absent"]["passed"])
+
+
+    def test_gitdir_file_and_fsmonitor_cannot_forge_the_verdict(self):
+        # Found by adversarial review: .git as a gitdir file defeats in-place sanitising, and an
+        # fsmonitor hook prints forged verifier lines while the token stays reachable.
+        steps, legacy, verdict = gitdir_forgery_attack(SEED)
+        self.assertTrue(all(row["passed"] for row in legacy.values()), legacy)   # before: fooled
+        self.assertFalse(verdict["passed"])                                       # after: rejected
+        self.assertIn("repository_is_plain_git_dir", verdict["checks"])
+
+    def test_agent_git_config_and_hooks_never_run_during_verification(self):
+        # Same forgery with .git left as a real directory: the verifier copies objects and refs into
+        # a fresh bare repo, so the planted fsmonitor/hook never runs and the extra ref is seen.
+        from terminal_env.redteam import GITDIR_FORGERY_HACK
+        hack = GITDIR_FORGERY_HACK.replace("mv .git /workspace/realgit\necho 'gitdir: /workspace/realgit' > .git\n", "")
+        hack = hack.replace("git for-each-ref --format='%(refname)'", "mkdir -p .git/hooks && cp /workspace/fsm.sh .git/hooks/post-index-change && git for-each-ref --format='%(refname)'")
+        self.assertNotIn("gitdir:", hack)
+        verdict, _ = episode("git-rescue", [
+            "cd repo && git show backup/pre-cleanup:config/secrets.env | sed -n 's/^API_TOKEN=//p' > /tmp/tok",
+            Path("terminal_env/tasks/git-rescue/solution/oracle.sh").read_text(), hack])
+        self.assertFalse(verdict["passed"])
+        self.assertFalse(verdict["checks"]["only_expected_refs"]["passed"])
+        self.assertIn("refs/heads/stolen", verdict["checks"]["only_expected_refs"]["refs"])
+        self.assertFalse(verdict["checks"]["tokens_unreachable_from_all_refs"]["passed"])
 
 
 if __name__ == "__main__":
