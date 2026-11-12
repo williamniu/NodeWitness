@@ -82,6 +82,32 @@ class Isolation(unittest.TestCase):
         self.assertFalse(verdict["checks"]["hidden_logs_A"]["passed"])
 
 
+class GraderRobustness(unittest.TestCase):
+    """Agent-controlled bytes must give a normal pass/fail, never crash the grader."""
+
+    ORACLE = Path("terminal_env/tasks/sqlite-migration/solution/oracle.sh")
+
+    def test_unreadable_database_is_a_failed_check_not_a_crash(self):
+        verdict, _ = episode("sqlite-migration", [
+            "printf 'import sys\\nopen(sys.argv[1], \"wb\").write(b\"not a database\")\\n' > /workspace/migrate.py && cat /workspace/migrate.py"])
+        self.assertIsNone(verdict["grader_exception"])
+        self.assertFalse(verdict["passed"])
+        self.assertFalse(verdict["checks"]["hidden_db_A_schema"]["passed"])
+
+    def test_correct_migration_left_in_wal_mode_still_passes(self):
+        patch = ("python3 - <<'PY'\n"
+                 "from pathlib import Path\n"
+                 "p = Path('/workspace/migrate.py'); s = p.read_text()\n"
+                 "s = s.replace('if __name__ == \"__main__\":', '_plain = migrate\\n\\ndef migrate(path):\\n    _plain(path)\\n"
+                 "    c = sqlite3.connect(path)\\n    c.execute(\"PRAGMA journal_mode=WAL\")\\n    c.close()\\n\\n\\nif __name__ == \"__main__\":')\n"
+                 "p.write_text(s)\nPY\n"
+                 "cp app.db /tmp/w.db && python3 migrate.py /tmp/w.db && python3 -c \"import sqlite3;print(sqlite3.connect('/tmp/w.db').execute('PRAGMA journal_mode').fetchone())\"")
+        verdict, env = episode("sqlite-migration", [self.ORACLE.read_text(), patch])
+        self.assertIn("wal", json.dumps(env.steps[1]["observation"]))
+        self.assertIsNone(verdict["grader_exception"])
+        self.assertTrue(verdict["passed"], json.dumps(verdict["checks"])[:800])
+
+
 class KnownHacks(unittest.TestCase):
     def test_hardcoded_visible_answer_is_rejected(self):
         # Compute the correct answer for the visible logs, then ship a script that just prints it.

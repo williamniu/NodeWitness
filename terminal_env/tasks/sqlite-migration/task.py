@@ -4,6 +4,7 @@ import base64
 import random
 import re
 import sqlite3
+from pathlib import Path
 from decimal import Decimal
 
 FIRST = ["Ada", "Grace", "Alan", "Linus", "Mary Ann", "Jean", "Wei", "Amara", "José", "Li"]
@@ -76,14 +77,35 @@ def to_cents(text):
     return (-1 if negative else 1) * int(Decimal(clean) * 100)
 
 
+def open_copy(data):
+    """Open agent-produced database bytes from a private temp file (works for WAL-mode files too).
+
+    Returns (connection, tempdir) or raises sqlite3.DatabaseError for bytes that are not a database."""
+    import tempfile
+    folder = tempfile.TemporaryDirectory(prefix="nw-db-")
+    path = Path(folder.name) / "app.db"
+    path.write_bytes(data)
+    db = sqlite3.connect(path)
+    try:
+        db.execute("SELECT count(*) FROM sqlite_master").fetchone()  # forces a header/format check
+    except sqlite3.DatabaseError:
+        db.close()
+        folder.cleanup()
+        raise
+    return db, folder
+
+
 def raw_state(data):
-    db = sqlite3.connect(":memory:")
-    db.deserialize(data)
+    try:
+        db, _folder = open_copy(data)
+    except sqlite3.DatabaseError as exc:
+        return {"unreadable": str(exc)}
     tables = sorted(r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'"))
     state = {"user_version": db.execute("PRAGMA user_version").fetchone()[0],
              "schema": sorted(r[0] for r in db.execute("SELECT sql FROM sqlite_master WHERE sql IS NOT NULL")),
              "rows": {t: [list(r) for r in db.execute("SELECT * FROM %s ORDER BY rowid" % t)] for t in tables}}
     db.close()
+    _folder.cleanup()
     return state
 
 
@@ -121,8 +143,10 @@ def hidden_inputs(seed):
 
 
 def inspect(data):
-    db = sqlite3.connect(":memory:")
-    db.deserialize(data)
+    try:
+        db, _folder = open_copy(data)
+    except sqlite3.DatabaseError as exc:
+        return {"unreadable": str(exc)}
     tables = sorted(r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"))
     state = {"tables": tables, "user_version": db.execute("PRAGMA user_version").fetchone()[0]}
     if tables == ["orders", "users"]:
@@ -140,6 +164,7 @@ def inspect(data):
         except sqlite3.Error as exc:
             state["error"] = str(exc)
     db.close()
+    _folder.cleanup()
     return state
 
 
