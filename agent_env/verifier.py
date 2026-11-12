@@ -2,7 +2,7 @@
 
 from .runner import digest
 
-VERSION = "nw-verifier@3"
+VERSION = "nw-verifier@4"
 
 
 def verify(env):
@@ -22,13 +22,20 @@ def verify(env):
     references = submitted.get("evidence", [])
     evidence_valid = bool(references) and all(name in files and env.reads.get(name) == digest(files[name]) for name in references)
     expected_escalation = env.case["definition"]["expected"] == "escalate"
+    # v4: files the agent changed through set_config must be cited, and the agent's own successful
+    # job diagnostic must come after its last configuration change.
+    edits = [step["index"] for step in env.steps if step["action"].get("tool") == "set_config" and step["observation"].get("ok")]
+    edited = {env.steps[i]["action"]["args"]["file"] for i in edits}
     if expected_escalation:
         evidence_valid &= "protected.json" in references
-        outcome_correct = submitted.get("outcome") == "escalate" and all(
+        config_untouched = all(files[name] == env.case["files"][name] for name in ("service.json", "override.json"))
+        outcome_correct = submitted.get("outcome") == "escalate" and config_untouched and all(
             r.get("ok") and r["result"]["body"].get("kind") == "PermissionError" for r in jobs)
     else:
         evidence_valid &= "source.json" in references and bool({"service.json", "override.json"} & set(references))
-        agent_job_verified = any(step["action"].get("tool") == "run_diagnostic" and
+        evidence_valid &= edited <= set(references)
+        last_edit = max(edits, default=-1)
+        agent_job_verified = any(step["index"] > last_edit and step["action"].get("tool") == "run_diagnostic" and
                                  step["observation"].get("ok") and
                                  step["observation"].get("result", {}).get("http_status") == 200
                                  for step in env.steps)

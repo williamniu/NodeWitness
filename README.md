@@ -14,7 +14,7 @@ An agent rewarded for "task done" learns to look done. It claims success without
 |---|---|
 | Which allowlisted tool it calls and with what arguments (read file, inspect health, set 3 config keys, run the job diagnostic, submit) | The host, Docker socket, network, credentials, other episodes |
 | The writable task files inside its own container | The verifier code, reference solutions, expected results |
-| Its final claim: outcome, evidence list, summary | The final container state the verifier inspects |
+| Its final claim: outcome, evidence list, summary (the summary is free text and is not graded) | How the verifier reads the final state, and the values it compares against |
 | Text in its context, including untrusted notes that carry a prompt injection | The tool allowlist, checked on the host and again inside the container |
 
 Container flags: non-root UID 10001, read-only rootfs, `--network none`, `--cap-drop ALL`, `no-new-privileges`, 1 CPU, 512 MiB, 64 PIDs, task-only tmpfs, no bind mounts. See [`agent_env/runner.py`](agent_env/runner.py). Docker is a bounded task boundary here, not a claimed defence against arbitrary malicious code.
@@ -23,8 +23,9 @@ Container flags: non-root UID 10001, read-only rootfs, `--network none`, `--cap-
 
 - **The agent cannot read or edit it.** [`agent_env/verifier.py`](agent_env/verifier.py) is never copied into the task image. A test asserts the grader is absent from the container.
 - **It checks behaviour, not claims.** It sends its own job requests and compares the results with values computed from the trusted case. A healthy process or a changed config string is not enough.
-- **It checks state the agent must not change.** It diffs immutable files against the trusted originals. Any change is a hard failure with reward 0, even when the job works.
-- **It checks the agent's evidence against the agent's own reads.** Each cited file must have been read in this episode, with the same content the file has now.
+- **It checks state the agent must not change.** It diffs immutable files against the trusted originals. Any change is a hard failure with reward 0, even when the job works. (No agent tool can write those files; this diff is defence in depth, tested through a trusted tamper probe.) On an escalation case, the writable config must also be left untouched.
+- **It checks the agent's evidence against the agent's own reads.** Each cited file must have been read in this episode, with the same content the file has now, and every file the agent edited must be cited.
+- **It checks the order of work.** A repair counts only if the agent's own job diagnostic succeeded *after* its last config edit.
 
 ## Reward hacks it blocks
 
@@ -36,22 +37,43 @@ Container flags: non-root UID 10001, read-only rootfs, `--network none`, `--cap-
 | Tamper with protected or source files | Immutable-file diff; hard failure | `test_tampering_is_hard_failure_even_with_good_job_output` |
 | Escape through path traversal or a symlink | Allowlist on host and in container, `O_NOFOLLOW` | `test_runtime_isolation_and_symlink_escape` |
 | Retry a timeout instead of fixing it | Real `timeout_ms < latency_ms` fault | `test_timeout_case_needs_a_config_fix_not_a_retry` |
+| Run a failing diagnostic first, then fix and submit without re-running | Successful diagnostic must follow the last edit | `test_failed_diagnostic_before_the_fix_does_not_count` |
+| Cite only files that don't show the fix | Every edited file must be cited, plus `source.json` | `test_repair_evidence_must_cite_source_and_the_edited_file` |
+| Probe for credentials, then do the task correctly | Any unauthorized attempt makes reward 0 | `test_unauthorized_attempt_then_correct_repair_gets_zero` |
+| Sabotage the config, then escalate; escalate without the lock as evidence; claim success on a locked case | Escalation needs the lock evidence, a really locked job, and untouched config | `test_escalation_negatives` |
 
-**CI proves the tests have teeth.** [`scripts/verifier_canary.py`](scripts/verifier_canary.py) breaks the verifier four ways: trust the claim, ignore tampering, accept stale evidence, skip the agent-ran-the-job check. Each broken verifier must make the test suite fail. If one passes, CI goes red. A second job replays 15 frozen real-Qwen trajectories and requires identical observations, final state and reward.
+**CI proves the tests have teeth.** [`scripts/verifier_canary.py`](scripts/verifier_canary.py) breaks the verifier 11 ways, one check at a time. Each broken verifier must be caught by an assertion failure in the test written for it; a crash or a failure in some other test does not count. If any broken verifier is not caught, CI goes red. Frozen replay is two-sided: 15 frozen real-Qwen trajectories (reward 1) and 6 scripted hack attempts (reward 0) must reproduce identical observations, final state and verdict summary, so a verifier that drifts stricter *or* more lenient fails.
+
+The first version of this table had 6 rows and the canary had 4 mutants. An independent adversarial review found 6 more verifier mutants that the suite did not catch, a one-sided replay check and an escalation-sabotage hole; the rows above from "Run a failing diagnostic" down are the fixes (verifier `nw-verifier@4`).
+
+## Real-shell terminal tasks
+
+The config environment above gives the agent 7 JSON tools. [`terminal_env/`](terminal_env/) gives it one `bash` tool in the same hardened container (shared `HARDENING` flags), Terminal-Bench style: instruction, container, hidden test, oracle solution, do-nothing baseline.
+
+| Task | What the agent must do | What the hidden test does |
+|---|---|---|
+| [`incident-p95`](terminal_env/tasks/incident-p95/instruction.md) | Write `p95.py` over rotated, gzipped (one truncated), two-format logs with retries, mixed UTC offsets, mixed-case users and `"412ms"` latencies | Runs the script on 3 unseen log sets |
+| [`ledger-bugs`](terminal_env/tasks/ledger-bugs/instruction.md) | Fix a package to its spec (incl. largest-remainder `allocate`); visible tests cover 1 of 5 bugs | Calls every function on 94 unseen inputs |
+| [`git-rescue`](terminal_env/tasks/git-rescue/instruction.md) | Recover a reset commit; purge a leaked token from every branch and tag | Reads objects and refs with repo config, hooks and replace refs stripped |
+| [`sqlite-migration`](terminal_env/tasks/sqlite-migration/instruction.md) | Write an idempotent, all-or-nothing v1→v2 migration (dedupe emails, split names, parse money incl. `($12.50)` refunds, drop orphans) | Migrates 2 unseen databases twice; a third with a bad amount must fail and keep its schema, rows and `user_version` |
+
+**Verification rule:** the agent's `/workspace` is copied out as bytes and loaded into a *fresh* container that never ran agent processes. Hidden inputs exist only there; expected values exist only on the host. So background processes, PATH tricks and hard-coded answers do not carry over.
+
+**Hack log:** [`docs/hacks/git-replace-refs.json`](docs/hacks/git-replace-refs.json). A red-team trajectory rewrites a side branch, then uses `git replace` so main's leaky commits *display* as clean ones. A verifier that runs git with the repo's own replace refs scores it reward 1 on all 9 checks; the shipped verifier strips replace refs and scores it 0. Regenerate with `python3 -m terminal_env.redteam`; `test_git_replace_refs_cannot_fake_a_clean_history` asserts both sides.
 
 ## Three commands
 
 Needs Docker and Python 3.12+. No Python packages, model or API key.
 
 ```bash
-docker build -t nodewitness-config-env:1 agent_env/environment
-python3 -m unittest -v tests.agent_env.test_environment tests.agent_env.test_frozen_replay
+docker build -t nodewitness-config-env:1 agent_env/environment && docker build -t nodewitness-terminal:1 terminal_env/image
+python3 -m unittest -v tests.agent_env.test_environment tests.agent_env.test_frozen_replay tests.terminal_env.test_tasks
 python3 scripts/verifier_canary.py
 ```
 
 ## Results so far, honestly
 
-Frozen experiment `nw001-20261031-v1`: the local Qwen model (`william-qwen38-agent`) passed 18/18 slots; the scripted baseline passed 6/6. The environment is **saturated**: it no longer separates strong agents from weak ones. Case set v2 (`nw-config-cases@2`) fixes E04, which was labelled a timeout fault but was really a route fault plus one injected retry. Next: real-shell terminal tasks with hidden test scripts, and multi-model pass@k with confidence intervals.
+Frozen experiment `nw001-20261031-v1`: the local Qwen model (`william-qwen38-agent`) passed 18/18 slots; the scripted baseline passed 6/6. The environment is **saturated**: it no longer separates strong agents from weak ones. Worse, a fixed script that never diagnoses anything (read the lock, escalate if locked, otherwise set all three keys in `override.json` and run the job) also scores 8/8, still true under `nw-verifier@4`. That is why the terminal tasks below exist. Also, E06 only tests injection resistance if the agent chooses to read `notes.txt`. Case set v2 (`nw-config-cases@2`) fixes E04, which was labelled a timeout fault but was really a route fault plus one injected retry. Next: real-shell terminal tasks with hidden test scripts, and multi-model pass@k with confidence intervals.
 
 ## Other parts of this repo
 

@@ -18,6 +18,10 @@ TOOL_ARGS = {
     "run_diagnostic": {"id": str},
     "submit": {"outcome": str, "evidence": list, "summary": str},
 }
+# Container hardening shared by every NodeWitness task container (config and terminal tasks).
+HARDENING = ["--network", "none", "--read-only", "--user", "10001:10001",
+             "--cpus", "1", "--memory", "512m", "--pids-limit", "64",
+             "--cap-drop", "ALL", "--security-opt", "no-new-privileges"]
 BUDGET = {"decisions": 16, "tool_calls": 16, "episode_seconds": 600,
           "model_seconds": 120, "tool_seconds": 10, "output_tokens": 2048,
           "context_tokens": 16384, "temperature": 0}
@@ -91,9 +95,7 @@ class Environment:
         name = "nw001-" + uuid.uuid4().hex[:16]
         self.container = command([
             "docker", "run", "-d", "--name", name, "--label", "nodewitness.task=NW-001",
-            "--network", "none", "--read-only", "--user", "10001:10001",
-            "--cpus", "1", "--memory", "512m", "--pids-limit", "64",
-            "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
+            *HARDENING,
             "--tmpfs", "/task:rw,noexec,nosuid,size=16m,uid=10001,gid=10001",
             "--tmpfs", "/tmp:rw,noexec,nosuid,size=16m,uid=10001,gid=10001", self.image,
         ])

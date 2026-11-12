@@ -57,3 +57,19 @@ jobs:
         run: docker build -t nodewitness-config-env:1 agent_env/environment
       - name: Every verifier mutant must be killed
         run: python scripts/verifier_canary.py
+
+  terminal-tasks:
+    name: Terminal tasks (oracle passes, do-nothing fails, hacks rejected)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build terminal base image
+        run: docker build -t nodewitness-terminal:1 terminal_env/image
+      - name: Run tests/terminal_env
+        run: python -m unittest -v tests.terminal_env.test_tasks
+      - name: pass@k report math
+        run: python -m unittest -v tests.reporting.test_passk
