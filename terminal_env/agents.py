@@ -29,7 +29,11 @@ class Ollama:
             found = next((m for m in json.load(response)["models"] if m["name"] == self.model), None)
         if found is None:
             raise RuntimeError("Model is not installed; nothing is downloaded")
-        return {"adapter": "ollama-native-tools@1", "model": self.model, "digest": found["digest"], "think": self.think}
+        details = found.get("details", {})
+        return {"adapter": "ollama-native-tools@1", "model": self.model, "digest": found["digest"], "think": self.think,
+                "parent_model": details.get("parent_model") or None, "family": details.get("family"),
+                "parameter_size": details.get("parameter_size") or None, "quantization": details.get("quantization_level"),
+                "sampling": {"temperature": 0.7, "num_ctx": 32768, "num_predict": 4096}}
 
     def decide(self, messages, seed, timeout=180):
         payload = {"model": self.model, "messages": messages, "tools": TOOLS, "think": self.think, "stream": False,

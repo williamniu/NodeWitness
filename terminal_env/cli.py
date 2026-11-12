@@ -20,10 +20,26 @@ ROOT = Path(__file__).resolve().parent.parent
 OUTPUT = ROOT / "outputs/terminal/trials"
 
 
+MODELS = {"qwen": "william-qwen38-agent:latest", "qwen38": "william-qwen38-agent:latest",
+          "qwen36": "william-qwen3.6:latest"}
+
+
 def make_adapter(agent):
-    if agent == "qwen":
-        return Ollama()
-    raise ValueError("Unknown model agent: " + agent)
+    if agent not in MODELS:
+        raise ValueError("Unknown model agent: " + agent)
+    return Ollama(model=MODELS[agent])
+
+
+def provenance():
+    """What exactly ran: commit, whether terminal_env differs from it, and hashes of task code."""
+    import hashlib
+    import subprocess
+    files = sorted(p for p in (ROOT / "terminal_env").rglob("*") if p.is_file() and "__pycache__" not in p.parts)
+    hashes = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
+    run = lambda *args: subprocess.run(args, cwd=ROOT, capture_output=True, text=True).stdout.strip()
+    return {"git_commit": run("git", "rev-parse", "HEAD"),
+            "terminal_env_dirty": bool(run("git", "status", "--porcelain", "--", "terminal_env")),
+            "terminal_env_digest": hashlib.sha256(json.dumps(hashes, sort_keys=True).encode()).hexdigest()}
 
 
 def trial(task_id, agent, seed, experiment=None):
@@ -31,6 +47,7 @@ def trial(task_id, agent, seed, experiment=None):
     record = {"schema": "nw.terminal-trial@1", "run_id": run_id, "task": task_id, "agent": agent, "seed": seed,
               "experiment_id": experiment, "environment_version": VERSION, "verifier_version": VERIFIER_VERSION,
               "budgets": BUDGET, "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+              "provenance": provenance(),
               "errors": [], "events": []}
     env = TerminalEnvironment(task_id)
     started = time.monotonic()
