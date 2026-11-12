@@ -1,0 +1,50 @@
+{
+  "case_count": 7,
+  "cases": [
+    {
+      "case_id": "F00",
+      "input_path": "cases/F00/bundle.json",
+      "input_sha256": "ca1eb6a9d9b8bc55da3e51bc805e4c3a09deab1fa7c89977b238db854533c482",
+      "manifest_path": "cases/F00/manifest.json"
+    },
+    {
+      "case_id": "F01",
+      "input_path": "cases/F01/bundle.json",
+      "input_sha256": "b1ef6ac3cb1963f3a9f1ea2c0fd3e1448fdf8b20377dfc5cd0e04f2511ea3e43",
+      "manifest_path": "cases/F01/manifest.json"
+    },
+    {
+      "case_id": "F02",
+      "input_path": "cases/F02/bundle.json",
+      "input_sha256": "66ba872afacc69548d5bd856dc13209d6fa8578463f9a5ca123f0e860ba7304a",
+      "manifest_path": "cases/F02/manifest.json"
+    },
+    {
+      "case_id": "F03",
+      "input_path": "cases/F03/bundle.json",
+      "input_sha256": "94e669be08501a66de6c8d273dd886d95f67c17bb95a2b2cf4ca6d6a57c698ec",
+      "manifest_path": "cases/F03/manifest.json"
+    },
+    {
+      "case_id": "F04",
+      "input_path": "cases/F04/bundle.json",
+      "input_sha256": "0cbf7e2a6d12018c30f27fc9f9224fd4c7bae7b1b502a46acd83fdc5a13dee7e",
+      "manifest_path": "cases/F04/manifest.json"
+    },
+    {
+      "case_id": "F05",
+      "input_path": "cases/F05/bundle.json",
+      "input_sha256": "9ec1310f35c32a9c6ba5bfa4c62cec74711edb25c09ae4d6fd67995be4892c49",
+      "manifest_path": "cases/F05/manifest.json"
+    },
+    {
+      "case_id": "F06",
+      "input_path": "cases/F06/bundle.json",
+      "input_sha256": "205317a2862c926db6a573de36e3a2b0906bee518d9fd0f7a12b6e76cbde0782",
+      "manifest_path": "cases/F06/manifest.json"
+    }
+  ],
+  "note": "No reference outcomes, completed findings or model-trial results are in this input tree.",
+  "schema_version": "nw-finance-data@1",
+  "synthetic": true
+}

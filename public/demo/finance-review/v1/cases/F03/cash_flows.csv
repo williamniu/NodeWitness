@@ -1,0 +1,10 @@
+flow_id,due_date,direction,category,amount,currency,confirmed,fund_position_id,source_id,notice_id,settlement_status,received_at
+CF-01,2026-11-10,out,family_distribution,400000,USD,true,,SRC-CF,NOTICE-01,unpaid,2026-10-29T09:00:00Z
+CF-02,2026-12-10,out,family_distribution,400000,USD,true,,SRC-CF,NOTICE-02,unpaid,2026-10-29T09:00:00Z
+CF-03,2027-01-10,out,family_distribution,400000,USD,true,,SRC-CF,NOTICE-03,unpaid,2026-10-29T09:00:00Z
+CF-04,2027-01-20,out,family_distribution,300000,USD,true,,SRC-CF,NOTICE-04,unpaid,2026-10-29T09:00:00Z
+CF-05,2026-11-20,out,capital_call,1000000,USD,true,P21,SRC-CF,NOTICE-05,unpaid,2026-10-29T09:00:00Z
+CF-06,2026-12-15,out,capital_call,900000,USD,true,P21,SRC-CF,NOTICE-06,unpaid,2026-10-29T09:00:00Z
+CF-07,2027-01-15,out,capital_call,600000,USD,true,P22,SRC-CF,NOTICE-07,unpaid,2026-10-29T09:00:00Z
+CF-08,2026-12-31,in,estimated_fund_distribution,800000,USD,false,P23,SRC-CF,ESTIMATE-08,unreceived,2026-10-29T09:00:00Z
+CF-09,2027-03-01,out,capital_call,1000000,USD,true,P23,SRC-CF,NOTICE-09,unpaid,2026-10-29T09:00:00Z

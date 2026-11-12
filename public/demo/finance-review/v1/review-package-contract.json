@@ -1,0 +1,117 @@
+{
+  "binding_check_does_not_authenticate_a_human": true,
+  "business_states": [
+    "within_policy",
+    "review_required",
+    "needs_source"
+  ],
+  "decision_states": [
+    "pending",
+    "approved",
+    "rejected",
+    "invalidated"
+  ],
+  "evidence_fields": [
+    "source_id",
+    "file",
+    "record_id",
+    "fields",
+    "source_date",
+    "file_sha256",
+    "policy_id",
+    "policy_page"
+  ],
+  "no_source_recheck_is_resolved_without_actual_evidence": true,
+  "output_state_of_this_phase": "blank_template_and_reference_only",
+  "package_approval_is_not_action_execution_approval": true,
+  "required_package_fields": [
+    "schema_version",
+    "synthetic",
+    "case_id",
+    "run_id",
+    "package_version",
+    "review_as_of",
+    "active_policy_id",
+    "input_sha256",
+    "model_identity",
+    "checker_version",
+    "policy_changes",
+    "source_changes",
+    "source_inventory",
+    "findings",
+    "sources_to_recheck",
+    "suggested_actions",
+    "limitations",
+    "approval",
+    "handoff"
+  ],
+  "schema_version": "nw-finance-review-contract@1",
+  "section_fields": {
+    "findings": [
+      "finding_id",
+      "rule_id",
+      "business_state",
+      "observed",
+      "limit",
+      "units",
+      "calculation",
+      "evidence",
+      "limitations",
+      "action_ids"
+    ],
+    "policy_changes": [
+      "change_id",
+      "rule_id",
+      "before",
+      "after",
+      "effective_from",
+      "evidence",
+      "affected_checks"
+    ],
+    "source_changes": [
+      "change_id",
+      "source_id",
+      "before_hash",
+      "after_hash",
+      "measurement_date",
+      "received_at",
+      "affected_checks"
+    ],
+    "source_inventory": [
+      "source_id",
+      "file",
+      "sha256",
+      "measurement_date",
+      "received_at",
+      "quality_state"
+    ],
+    "sources_to_recheck": [
+      "request_id",
+      "source_id",
+      "reason",
+      "requested_confirmation",
+      "owner_role",
+      "due",
+      "state"
+    ],
+    "suggested_actions": [
+      "action_id",
+      "finding_ids",
+      "description",
+      "bounded_effect",
+      "owner_role",
+      "due",
+      "evidence",
+      "input_sha256",
+      "decision",
+      "execution_receipt"
+    ]
+  },
+  "source_quality_states": [
+    "verified_for_scope",
+    "missing",
+    "stale",
+    "conflicting",
+    "superseded"
+  ]
+}

@@ -1,5 +1,5 @@
-import NodeWitness from "./NodeWitness";
+import FinanceReview from "./FinanceReview";
 
 export default function Home() {
-  return <NodeWitness />;
+  return <FinanceReview />;
 }

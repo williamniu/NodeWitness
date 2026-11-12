@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   Background,
   Controls,
@@ -540,7 +541,7 @@ function Workspace() {
       <header className="topbar">
         <div className="brand-lockup">
           <div className="brand-mark" aria-hidden="true"><span /></div>
-          <div><strong>NodeWitness</strong><small className="brand-tagline">Build AI agents anyone can understand, review, and control.</small></div>
+          <div><strong>NodeWitness</strong><small className="brand-tagline">Build AI agents anyone can understand, review, and control.</small><Link className="brand-tagline" href="/environments">Agent environments →</Link></div>
         </div>
         <div className="workspace-title"><small>DEMO WORKSPACE</small><strong>Aurora Family Office — Client Mandate Compliance</strong></div>
         <div className="top-actions">

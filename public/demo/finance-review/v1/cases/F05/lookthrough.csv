@@ -1,0 +1,15 @@
+row_id,position_id,issuer_group,asset_class,issuer_type,exposure_currency,sector,weight,as_of,source_id,coverage_basis
+LT-P08-1,P08,VEGA,Equity,corporate,USD,Industrials,0.40,2026-09-30,SRC-LT,Administrator asset-class/exposure statement; not a full private-company inventory.
+LT-P08-2,P08,LARCH,Equity,corporate,USD,Technology,0.20,2026-09-30,SRC-LT,Administrator asset-class/exposure statement; not a full private-company inventory.
+LT-P08-3,P08,GOV-US,Fixed income,sovereign,USD,Government,0.30,2026-09-30,SRC-LT,Administrator asset-class/exposure statement; not a full private-company inventory.
+LT-P08-4,P08,TOKEN-A,Digital assets,token,USD,Digital assets,0.10,2026-09-30,SRC-LT,Administrator asset-class/exposure statement; not a full private-company inventory.
+LT-P16-1,P16,SYCAMORE,Fixed income,corporate,USD,Corporate,0.60,2026-09-30,SRC-LT,Administrator asset-class/exposure statement; not a full private-company inventory.
+LT-P16-2,P16,WALNUT,Fixed income,corporate,USD,Corporate,0.40,2026-09-30,SRC-LT,Administrator asset-class/exposure statement; not a full private-company inventory.
+LT-P21-1,P21,JUNIPER,Private equity,investment_vehicle,USD,Private equity,1.00,2026-09-30,SRC-LT,Administrator asset-class/exposure statement; not a full private-company inventory.
+LT-P22-1,P22,WILLOW,Private equity,investment_vehicle,USD,Private equity,1.00,2026-09-30,SRC-LT,Administrator asset-class/exposure statement; not a full private-company inventory.
+LT-P23-1,P23,ELM,Private equity,investment_vehicle,EUR,Private equity,1.00,2026-09-30,SRC-LT,Administrator asset-class/exposure statement; not a full private-company inventory.
+LT-P24-1,P24,BIRCH,Private equity,investment_vehicle,USD,Private equity,1.00,2026-09-30,SRC-LT,Administrator asset-class/exposure statement; not a full private-company inventory.
+LT-P25-1,P25,PROPERTY-E,Real assets,investment_vehicle,USD,Property,1.00,2026-09-30,SRC-LT,Administrator asset-class/exposure statement; not a full private-company inventory.
+LT-P26-1,P26,PROPERTY-W,Real assets,investment_vehicle,GBP,Property,1.00,2026-09-30,SRC-LT,Administrator asset-class/exposure statement; not a full private-company inventory.
+LT-P27-1,P27,INFRA,Real assets,investment_vehicle,EUR,Infrastructure,1.00,2026-09-30,SRC-LT,Administrator asset-class/exposure statement; not a full private-company inventory.
+LT-P28-1,P28,REAL,Real assets,investment_vehicle,USD,Real assets,1.00,2026-09-30,SRC-LT,Administrator asset-class/exposure statement; not a full private-company inventory.

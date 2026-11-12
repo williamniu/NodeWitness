@@ -1,0 +1,2 @@
+exception_id,rule_id,policy_id,account_id,position_id,approved_role,approved_on,valid_until,source_id,reason
+EX-001,restricted_sector,AURORA-IPS-2026-02,AC-01,P07,Investment Committee,2026-10-10,2026-12-31,SRC-EX,Temporary holding exception pending a separate tax-aware disposition review; no trade approved.

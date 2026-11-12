@@ -48,3 +48,7 @@ next-env.d.ts
 *.secrets
 *.key
 *.token
+
+# Python environment runner caches
+__pycache__/
+*.pyc

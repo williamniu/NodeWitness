@@ -1,0 +1,35 @@
+{
+  "active_policy_id": null,
+  "approval": {
+    "bound_actions_sha256": null,
+    "bound_input_sha256": null,
+    "bound_package_content_sha256": null,
+    "bound_policy_id": null,
+    "decided_at": null,
+    "rationale": null,
+    "reviewer": null,
+    "role": null,
+    "status": "pending"
+  },
+  "case_id": null,
+  "checker_version": null,
+  "findings": [],
+  "handoff": {
+    "accepted_at": null,
+    "receiving_role": null,
+    "remaining_obligations": []
+  },
+  "input_sha256": null,
+  "limitations": [],
+  "model_identity": null,
+  "package_version": null,
+  "policy_changes": [],
+  "review_as_of": null,
+  "run_id": null,
+  "schema_version": "nw-finance-review-package@1",
+  "source_changes": [],
+  "source_inventory": [],
+  "sources_to_recheck": [],
+  "suggested_actions": [],
+  "synthetic": true
+}

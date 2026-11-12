@@ -1,0 +1,5 @@
+account_id,entity,custodian,mandate,included
+AC-01,Aurora Family Investment LLC,Fictional Custodian A,Listed investments,true
+AC-02,Aurora Family Trust,Fictional Custodian B,Income and international assets,true
+AC-03,Aurora Private Investments LP,Fictional Fund Administrator,Private investments,true
+AC-04,Aurora Treasury LLC,Fictional Bank C,Cash and family distributions,true
