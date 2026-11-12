@@ -97,7 +97,7 @@ Existing final slots are retained, including failures; the runner never replaces
 
 The experiment freezes its computation, tool, model, prompt and evaluation path. Local operator state/correction/browser checks are separate acceptance evidence, not inferred from model-arm differences.
 
-See the [phase handoff and interpretation](docs/nw-003-handoff.md), [adversarial findings](docs/nw-003-adversarial-review.md), and [approved phase plan](docs/nw-003-plan-v1.md). Publication, push, deployment, real reviewer sign-off and production identity are outside this local phase.
+See the [phase handoff and interpretation](docs/nw-003-handoff.md) and [adversarial findings](docs/nw-003-adversarial-review.md). Publication, push, deployment, real reviewer sign-off and production identity are outside this local phase.
 
 ## Legacy sample architecture
 
@@ -176,7 +176,7 @@ Open `http://127.0.0.1:3015/environments`. There is no web run button: the trust
 - Action replay compares observations and normalized state, excluding timing metadata and transient container identity. Model calls can choose different actions even when a seed is requested. The model seed is a requested provider option, not a deterministic-policy guarantee.
 - Tests exercise bad claims, tampered protected state, stale evidence, path and symlink rejection, network/rootfs/cgroup restrictions, timeout, independent episodes, and cleanup. Docker provides a bounded task environment here; it is not claimed to be a strong boundary for arbitrary malicious code.
 
-This is one small environment family, not a general LLM benchmark, a production service, or an RL trainer. API/runtime/model errors are retained. Do not treat the old answer-supplied Codex governance adapter as independent evaluation. See [evaluation evidence](docs/nw-001-evaluation.md), [walkthrough and recording plan](docs/nw-001-walkthrough.md), and [execution plan](docs/nw-001-plan-v1-20261029.md).
+This is one small environment family, not a general LLM benchmark, a production service, or an RL trainer. API/runtime/model errors are retained. Do not treat the old answer-supplied Codex governance adapter as independent evaluation. See [evaluation evidence](docs/nw-001-evaluation.md) and [walkthrough and recording plan](docs/nw-001-walkthrough.md).
 
 ## Prerequisites
 
