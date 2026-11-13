@@ -1,5 +1,9 @@
 import random
+import subprocess
+import sys
+import tempfile
 import unittest
+from pathlib import Path
 
 from scripts.passk_report import pass_at_k, summarize
 
@@ -28,6 +32,17 @@ class PassAtK(unittest.TestCase):
         rows = {"a": [{"passed": p} for p in [1, 0, 0, 0, 0]]}
         result = summarize(rows, 5, random.Random("y"))
         self.assertEqual(result, {"pass_at_k": 1.0, "ci95": [1.0, 1.0]})
+
+
+class FrozenD5Report(unittest.TestCase):
+    def test_committed_report_regenerates_from_committed_trials(self):
+        root = Path(__file__).resolve().parents[2]
+        for experiment in ("d5", "d5-pinned"):
+            with self.subTest(experiment=experiment), tempfile.TemporaryDirectory() as out:
+                subprocess.run([sys.executable, "scripts/passk_report.py", experiment, "--trials", "results/%s/trials" % experiment,
+                                "--out", out], cwd=root, check=True, capture_output=True)
+                for name in (experiment + ".json", experiment + ".md"):
+                    self.assertEqual((Path(out) / name).read_bytes(), (root / "results/passk" / name).read_bytes(), name)
 
 
 if __name__ == "__main__":

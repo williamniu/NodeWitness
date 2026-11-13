@@ -1,0 +1,429 @@
+{
+ "schema": "nw.terminal-trial@1",
+ "run_id": "ledger-bugs-qwen38-1002-9339eaca",
+ "task": "ledger-bugs",
+ "agent": "qwen38",
+ "seed": 1002,
+ "experiment_id": "d5",
+ "environment_version": "nw-terminal-env@1",
+ "verifier_version": "nw-terminal-verifier@2",
+ "budgets": {
+  "tool_calls": 30,
+  "command_seconds": 20,
+  "output_chars": 6000,
+  "episode_seconds": 900
+ },
+ "created_at": "2026-11-13T00:17:44.033230+00:00",
+ "provenance": {
+  "git_commit": "fea503ffcd9dec5460fc209e5cf549313abaf7c1",
+  "terminal_env_dirty": false,
+  "terminal_env_digest": "fc2383e70809aa551e3f522222ce266b86f7f4c9cda809ad319859fdf1fcc4af"
+ },
+ "errors": [],
+ "events": [
+  {
+   "decision": 0,
+   "usage": {
+    "input_tokens": 549,
+    "output_tokens": 30
+   },
+   "calls": 1,
+   "text": ""
+  },
+  {
+   "decision": 1,
+   "usage": {
+    "input_tokens": 1367,
+    "output_tokens": 47
+   },
+   "calls": 1,
+   "text": ""
+  },
+  {
+   "decision": 2,
+   "usage": {
+    "input_tokens": 1497,
+    "output_tokens": 76
+   },
+   "calls": 1,
+   "text": ""
+  },
+  {
+   "decision": 3,
+   "usage": {
+    "input_tokens": 1899,
+    "output_tokens": 39
+   },
+   "calls": 1,
+   "text": ""
+  },
+  {
+   "decision": 4,
+   "usage": {
+    "input_tokens": 2088,
+    "output_tokens": 1124
+   },
+   "calls": 1,
+   "text": ""
+  },
+  {
+   "decision": 5,
+   "usage": {
+    "input_tokens": 3330,
+    "output_tokens": 693
+   },
+   "calls": 1,
+   "text": ""
+  },
+  {
+   "decision": 6,
+   "usage": {
+    "input_tokens": 4125,
+    "output_tokens": 497
+   },
+   "calls": 1,
+   "text": ""
+  },
+  {
+   "decision": 7,
+   "usage": {
+    "input_tokens": 4747,
+    "output_tokens": 37
+   },
+   "calls": 1,
+   "text": ""
+  },
+  {
+   "decision": 8,
+   "usage": {
+    "input_tokens": 4844,
+    "output_tokens": 185
+   },
+   "calls": 1,
+   "text": ""
+  },
+  {
+   "decision": 9,
+   "usage": {
+    "input_tokens": 5141,
+    "output_tokens": 192
+   },
+   "calls": 1,
+   "text": ""
+  },
+  {
+   "decision": 10,
+   "usage": {
+    "input_tokens": 5499,
+    "output_tokens": 111
+   },
+   "calls": 1,
+   "text": ""
+  },
+  {
+   "decision": 11,
+   "usage": {
+    "input_tokens": 5671,
+    "output_tokens": 185
+   },
+   "calls": 1,
+   "text": ""
+  },
+  {
+   "decision": 12,
+   "usage": {
+    "input_tokens": 6011,
+    "output_tokens": 207
+   },
+   "calls": 1,
+   "text": ""
+  }
+ ],
+ "model": {
+  "adapter": "ollama-native-tools@1",
+  "model": "william-qwen38-agent:latest",
+  "digest": "182d340504fff23579ab6670a7d8be3fac2563b524dcad0913207fe49d97274c",
+  "think": false,
+  "parent_model": null,
+  "family": "",
+  "parameter_size": null,
+  "quantization": "nvfp4",
+  "sampling": {
+   "temperature": 0.7,
+   "num_ctx": 32768,
+   "num_predict": 4096
+  }
+ },
+ "verifier": {
+  "version": "nw-terminal-verifier@2",
+  "task": "ledger-bugs",
+  "seed": 1002,
+  "passed": true,
+  "reward": 1,
+  "checks": {
+   "harness_ran": {
+    "passed": true
+   },
+   "ledger.money.to_cents": {
+    "passed": true,
+    "cases": 24,
+    "failed": []
+   },
+   "ledger.money.split": {
+    "passed": true,
+    "cases": 15,
+    "failed": []
+   },
+   "ledger.money.allocate": {
+    "passed": true,
+    "cases": 24,
+    "failed": []
+   },
+   "ledger.pages.page": {
+    "passed": true,
+    "cases": 12,
+    "failed": []
+   },
+   "ledger.dates.parse_ts": {
+    "passed": true,
+    "cases": 10,
+    "failed": []
+   },
+   "ledger.dates.day_bucket": {
+    "passed": true,
+    "cases": 9,
+    "failed": []
+   }
+  },
+  "grader_exception": null,
+  "workspace_sha256": "5b5c6440ab1463ee20c41844063cdc36c53a8bc7a673a24eae8d50f5521481ed"
+ },
+ "status": "passed",
+ "workspace_archive": "outputs/terminal/workspaces/ledger-bugs-qwen38-1002-9339eaca.tar.gz",
+ "steps": [
+  {
+   "index": 0,
+   "action": {
+    "tool": "bash",
+    "args": {
+     "command": "cat /workspace/SPEC.md"
+    }
+   },
+   "observation": {
+    "ok": true,
+    "result": {
+     "exit_code": 0,
+     "output": "# ledger — specification\n\n## ledger.money\n\n`to_cents(text: str) -> int`\n- `text` is an optional sign, one or more digits, and an optional `.` followed by one or more digits. Surrounding whitespace is allowed. Anything else raises `ValueError`.\n- Convert exactly (no binary floating point) and round to whole cents, **half away from zero**: `\"2.675\"` → `268`, `\"-1.005\"` → `-101`, `\"0.004\"` → `0`.\n\n`split(total_cents: int, n: int) -> list[int]`\n- Split `total_cents` into `n` integer parts that sum exactly to `total_cents` and whose absolute values differ by at most 1.\n- Parts with the larger absolute value come first. All non-zero parts have the sign of `total_cents`.\n- `n < 1` raises `ValueError`.\n- Example: `split(100, 3)` → `[34, 33, 33]`; `split(-5, 3)` → `[-2, -2, -1]`.\n\n`allocate(total_cents: int, weights: list[int]) -> list[int]`\n- Split `total_cents` in proportion to `weights` (non-negative integers). An empty list, a negative weight, or weights that sum to 0 raise `ValueError`.\n- Each part's exact share is `total_cents * w / sum(weights)`. Start from every share truncated toward zero. Then give the cents still missing, one each, to the parts with the largest discarded fractional parts; on a tie, the lower index wins.\n- The parts sum exactly to `total_cents`, and every non-zero part has its sign.\n- Examples: `allocate(10, [1, 2])` → `[3, 7]`; `allocate(100, [1, 1, 1])` → `[34, 33, 33]`; `allocate(-7, [1, 1])` → `[-4, -3]`; `allocate(5, [3, 0, 2])` → `[3, 0, 2]`.\n\n## ledger.pages\n\n`page(items: list, number: int, size: int) -> list`\n- Pages are 1-indexed: page 1 is `items[0:size]`.\n- A page past the end returns `[]`.\n- `number < 1` or `size < 1` raises `ValueError`.\n\n## ledger.dates\n\n`parse_ts(text: str) -> datetime.datetime`\n- Parse ISO 8601 with a `Z` or `±HH:MM` offset. Return an aware datetime **converted to UTC** (`tzinfo` is `datetime.timezone.utc`).\n- A timestamp without an offset raises `ValueError`.\n\n`day_bucket(text: str) -> str`\n- The UTC calendar date of `parse_ts(text)` as `YYYY-MM-DD`.\n"
+    }
+   },
+   "duration_seconds": 0.07
+  },
+  {
+   "index": 1,
+   "action": {
+    "tool": "bash",
+    "args": {
+     "command": "find /workspace -type f -name \"*.py\" | head -50; echo ---; ls /workspace"
+    }
+   },
+   "observation": {
+    "ok": true,
+    "result": {
+     "exit_code": 0,
+     "output": "/workspace/tests/test_pages.py\n/workspace/ledger/pages.py\n/workspace/ledger/money.py\n/workspace/ledger/dates.py\n/workspace/ledger/__init__.py\n---\nSPEC.md\nledger\ntests\n"
+    }
+   },
+   "duration_seconds": 0.064
+  },
+  {
+   "index": 2,
+   "action": {
+    "tool": "bash",
+    "args": {
+     "command": "cat /workspace/ledger/__init__.py; echo ===MONEY===; cat /workspace/ledger/money.py; echo ===PAGES===; cat /workspace/ledger/pages.py; echo ===DATES===; cat /workspace/ledger/dates.py"
+    }
+   },
+   "observation": {
+    "ok": true,
+    "result": {
+     "exit_code": 0,
+     "output": "\"\"\"Small ledger helpers: money, pagination and timestamps.\"\"\"\n===MONEY===\ndef to_cents(text):\n    \"\"\"Parse a decimal amount string into integer cents.\"\"\"\n    return int(float(text) * 100)\n\n\ndef split(total_cents, n):\n    \"\"\"Split an amount into n near-equal parts.\"\"\"\n    part = total_cents // n\n    return [part] * n\n\n\ndef allocate(total_cents, weights):\n    \"\"\"Split an amount in proportion to weights.\"\"\"\n    return [round(total_cents * w / sum(weights)) for w in weights]\n===PAGES===\ndef page(items, number, size):\n    \"\"\"Return one page of items.\"\"\"\n    start = number * size\n    return items[start:start + size]\n===DATES===\nfrom datetime import datetime, timezone\n\n\ndef parse_ts(text):\n    \"\"\"Parse an ISO 8601 timestamp.\"\"\"\n    return datetime.fromisoformat(text.replace(\"Z\", \"\")).replace(tzinfo=timezone.utc)\n\n\ndef day_bucket(text):\n    \"\"\"UTC calendar day of a timestamp.\"\"\"\n    return parse_ts(text).strftime(\"%Y-%m-%d\")\n"
+    }
+   },
+   "duration_seconds": 0.052
+  },
+  {
+   "index": 3,
+   "action": {
+    "tool": "bash",
+    "args": {
+     "command": "cat /workspace/tests/test_pages.py; echo ---; ls /workspace/tests"
+    }
+   },
+   "observation": {
+    "ok": true,
+    "result": {
+     "exit_code": 0,
+     "output": "import unittest\n\nfrom ledger.pages import page\n\n\nclass PageTests(unittest.TestCase):\n    def test_first_page(self):\n        self.assertEqual(page(list(range(10)), 1, 3), [0, 1, 2])\n\n    def test_last_partial_page(self):\n        self.assertEqual(page(list(range(10)), 4, 3), [9])\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n---\ntest_pages.py\n"
+    }
+   },
+   "duration_seconds": 0.069
+  },
+  {
+   "index": 4,
+   "action": {
+    "tool": "bash",
+    "args": {
+     "command": "cat > /workspace/ledger/money.py << 'EOF'\nimport re\n\n_CENTS_RE = re.compile(r'^[+-]?\\d+(\\.\\d+)?$')\n\n\ndef to_cents(text):\n    \"\"\"Parse a decimal amount string into integer cents (half away from zero).\"\"\"\n    if not isinstance(text, str):\n        raise ValueError(f\"not a string: {text!r}\")\n    s = text.strip()\n    if not _CENTS_RE.match(s):\n        raise ValueError(f\"invalid money text: {text!r}\")\n    # exact decimal arithmetic\n    neg = False\n    if s[0] in '+-':\n        neg = s[0] == '-'\n        s = s[1:]\n    if '.' in s:\n        int_part, frac_part = s.split('.')\n    else:\n        int_part, frac_part = s, ''\n    int_part = int_part if int_part else '0'\n    # total cents = int_part * 100 + frac_part padded/truncated to 2 digits\n    # round half away from zero\n    # build integer: digits = int_part + frac_part, scale = len(frac_part)\n    digits = int(int_part + frac_part) if frac_part else int(int_part)\n    scale = len(frac_part)\n    # value = digits / 10**scale\n    # cents = round(value * 100) = round(digits * 100 / 10**scale)\n    # = round(digits / 10**(scale-2))\n    if scale <= 2:\n        # multiply by 10^(2-scale)\n        cents = digits * (10 ** (2 - scale))\n    else:\n        # divide by 10^(scale-2), round half away from zero\n        divisor = 10 ** (scale - 2)\n        q, r = divmod(digits, divisor)\n        # half away from zero: round up if 2*r >= divisor\n        if 2 * r >= divisor:\n            q += 1\n        cents = q\n    return -cents if neg else cents\n\n\ndef split(total_cents, n):\n    \"\"\"Split total_cents into n near-equal integer parts.\"\"\"\n    if n < 1:\n        raise ValueError(\"n must be >= 1\")\n    sign = 1\n    if total_cents < 0:\n        sign = -1\n        total = -total_cents\n    else:\n        total = total_cents\n    base = total // n\n    rem = total % n\n    parts = [base + 1] * rem + [base] * (n - rem)\n    if sign < 0:\n        parts = [-p for p in parts]\n    return parts\n\n\ndef allocate(total_cents, weights):\n    \"\"\"Split total_cents in proportion to non-negative integer weights.\"\"\"\n    if not weights:\n        raise ValueError(\"weights must be non-empty\")\n    total_w = 0\n    for w in weights:\n        if w < 0:\n            raise ValueError(\"weights must be non-negative\")\n        total_w += w\n    if total_w == 0:\n        raise ValueError(\"weights sum to 0\")\n\n    sign = 1\n    if total_cents < 0:\n        sign = -1\n        total = -total_cents\n    else:\n        total = total_cents\n\n    # exact shares: total * w / total_w\n    # truncated toward zero for positive total = floor\n    base = []\n    remainders = []\n    used = 0\n    for i, w in enumerate(weights):\n        num = total * w\n        q, r = divmod(num, total_w)\n        base.append(q)\n        remainders.append((r, i))\n        used += q\n    missing = total - used\n    # distribute `missing` extra cents to parts with largest fractional parts\n    # tie: lower index wins. Sort by (-r, i).\n    remainders.sort(key=lambda x: (-x[0], x[1]))\n    for i in range(missing):\n        _, idx = remainders[i]\n        base[idx] += 1\n    if sign < 0:\n        base = [-p for p in base]\n    return base\nEOF\npython3 -c \"\nfrom ledger.money import to_cents, split, allocate\nprint(to_cents('2.675'))\nprint(to_cents('-1.005'))\nprint(to_cents('0.004'))\nprint(to_cents('  +12.30 '))\nprint(to_cents('5'))\nprint(split(100,3))\nprint(split(-5,3))\nprint(allocate(10,[1,2]))\nprint(allocate(100,[1,1,1]))\nprint(allocate(-7,[1,1]))\nprint(allocate(5,[3,0,2]))\n\""
+    }
+   },
+   "observation": {
+    "ok": true,
+    "result": {
+     "exit_code": 0,
+     "output": "268\n-101\n0\n1230\n500\n[34, 33, 33]\n[-2, -2, -1]\n[3, 7]\n[34, 33, 33]\n[-4, -3]\n[3, 0, 2]\n"
+    }
+   },
+   "duration_seconds": 0.127
+  },
+  {
+   "index": 5,
+   "action": {
+    "tool": "bash",
+    "args": {
+     "command": "cat > /workspace/ledger/pages.py << 'EOF'\ndef page(items, number, size):\n     \"\"\"Return one page of items (1-indexed).\"\"\"\n    if number < 1 or size < 1:\n        raise ValueError(\"number and size must be >= 1\")\n    start = (number - 1) * size\n    return items[start:start + size]\nEOF\n\ncat > /workspace/ledger/dates.py << 'EOF'\nfrom datetime import datetime, timezone\n\n\ndef parse_ts(text):\n     \"\"\"Parse ISO 8601 timestamp with Z or ±HH:MM offset, return UTC-aware datetime.\"\"\"\n    s = text.strip()\n    if not s:\n        raise ValueError(\"empty timestamp\")\n    # Normalize trailing Z to +00:00\n    if s.endswith('Z') or s.endswith('z'):\n        s2 = s[:-1] + '+00:00'\n    else:\n        s2 = s\n    # Must have an offset\n    if not _has_offset(s2):\n        raise ValueError(\"timestamp must have an offset\")\n    dt = datetime.fromisoformat(s2)\n    if dt.tzinfo is None:\n        raise ValueError(\"timestamp must have an offset\")\n    return dt.astimezone(timezone.utc)\n\n\ndef _has_offset(s):\n     # check for + or - followed by HH:MM (or HHMM) somewhere after the time part\n    # find first 'T' or space separator\n    i = s.find('T')\n    if i == -1:\n        i = s.find(' ')\n    if i == -1:\n        return False\n    rest = s[i+1:]\n     # find + or - after digits\n    j = 0\n     # skip time digits and optional fractional\n    while j < len(rest) and (rest[j].isdigit() or rest[j] in '.:'):\n        j += 1\n    if j < len(rest) and rest[j] in '+-':\n        return True\n    return False\n\n\ndef day_bucket(text):\n     \"\"\"UTC calendar day of a timestamp as YYYY-MM-DD.\"\"\"\n    return parse_ts(text).strftime(\"%Y-%m-%d\")\nEOF\n\npython3 -c \"\nfrom ledger.dates import parse_ts, day_bucket\nfrom datetime import timezone\nprint(parse_ts('2024-01-15T10:30:00Z'))\nprint(parse_ts('2024-01-15T10:30:00+02:00'))\nprint(parse_ts('2024-01-15T10:30:00-05:00'))\nprint(day_bucket('2024-01-15T23:30:00+02:00'))\ntry:\n    parse_ts('2024-01-15T10:30:00')\nexcept ValueError as e:\n    print('ok', e)\n\""
+    }
+   },
+   "observation": {
+    "ok": true,
+    "result": {
+     "exit_code": 1,
+     "output": "Traceback (most recent call last):\n  File \"<string>\", line 2, in <module>\n  File \"/workspace/ledger/dates.py\", line 6\n    s = text.strip()\n                    ^\nIndentationError: unindent does not match any outer indentation level\n"
+    }
+   },
+   "duration_seconds": 0.077
+  },
+  {
+   "index": 6,
+   "action": {
+    "tool": "bash",
+    "args": {
+     "command": "cat > /workspace/ledger/dates.py << 'EOF'\nfrom datetime import datetime, timezone\n\n\ndef parse_ts(text):\n    \"\"\"Parse ISO 8601 timestamp with Z or ±HH:MM offset, return UTC-aware datetime.\"\"\"\n    s = text.strip()\n    if not s:\n        raise ValueError(\"empty timestamp\")\n    if s.endswith('Z') or s.endswith('z'):\n        s2 = s[:-1] + '+00:00'\n    else:\n        s2 = s\n    dt = datetime.fromisoformat(s2)\n    if dt.tzinfo is None:\n        raise ValueError(\"timestamp must have an offset\")\n    return dt.astimezone(timezone.utc)\n\n\ndef day_bucket(text):\n    \"\"\"UTC calendar day of a timestamp as YYYY-MM-DD.\"\"\"\n    return parse_ts(text).strftime(\"%Y-%m-%d\")\nEOF\n\ncat > /workspace/ledger/pages.py << 'EOF'\ndef page(items, number, size):\n    \"\"\"Return one page of items (1-indexed).\"\"\"\n    if number < 1 or size < 1:\n        raise ValueError(\"number and size must be >= 1\")\n    start = (number - 1) * size\n    return items[start:start + size]\nEOF\n\npython3 -c \"\nfrom ledger.dates import parse_ts, day_bucket\nprint(parse_ts('2024-01-15T10:30:00Z'))\nprint(parse_ts('2024-01-15T10:30:00+02:00'))\nprint(day_bucket('2024-01-15T23:30:00+02:00'))\ntry:\n    parse_ts('2024-01-15T10:30:00')\nexcept ValueError as e:\n    print('ok', e)\nfrom ledger.pages import page\nprint(page(list(range(10)),1,3))\nprint(page(list(range(10)),4,3))\nprint(page(list(range(10)),5,3))\n\""
+    }
+   },
+   "observation": {
+    "ok": true,
+    "result": {
+     "exit_code": 0,
+     "output": "2024-01-15 10:30:00+00:00\n2024-01-15 08:30:00+00:00\n2024-01-15\nok timestamp must have an offset\n[0, 1, 2]\n[9]\n[]\n"
+    }
+   },
+   "duration_seconds": 0.081
+  },
+  {
+   "index": 7,
+   "action": {
+    "tool": "bash",
+    "args": {
+     "command": "cd /workspace && python3 -m unittest discover -s tests"
+    }
+   },
+   "observation": {
+    "ok": true,
+    "result": {
+     "exit_code": 0,
+     "output": "..\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n"
+    }
+   },
+   "duration_seconds": 0.231
+  },
+  {
+   "index": 8,
+   "action": {
+    "tool": "bash",
+    "args": {
+     "command": "python3 -c \"\nfrom ledger.money import to_cents\n# edge cases\nprint(to_cents('.5'))\nprint(to_cents('.50'))\nprint(to_cents('-.5'))\nprint(to_cents('0'))\nprint(to_cents('-0'))\nprint(to_cents('00.005'))\ntry:\n    to_cents('abc')\nexcept ValueError as e: print('ok')\ntry:\n    to_cents('1.2.3')\nexcept ValueError as e: print('ok')\ntry:\n    to_cents('1.')\nexcept ValueError as e: print('ok')\ntry:\n    to_cents('')\nexcept ValueError as e: print('ok')\n\""
+    }
+   },
+   "observation": {
+    "ok": true,
+    "result": {
+     "exit_code": 1,
+     "output": "Traceback (most recent call last):\n  File \"<string>\", line 4, in <module>\n  File \"/workspace/ledger/money.py\", line 12, in to_cents\n    raise ValueError(f\"invalid money text: {text!r}\")\nValueError: invalid money text: '.5'\n"
+    }
+   },
+   "duration_seconds": 0.121
+  },
+  {
+   "index": 9,
+   "action": {
+    "tool": "bash",
+    "args": {
+     "command": "cd /workspace && sed -i \"s|_CENTS_RE = re.compile(r'\\^\\[+-\\]?\\\\\\\\d+(\\\\\\\\.\\\\\\\\d+)?\\$')|_CENTS_RE = re.compile(r'^[+-]?(\\\\\\\\d+(\\\\\\\\.\\\\\\\\d+)?|\\\\\\\\.\\\\\\\\d+)\\$')|\" ledger/money.py\ngrep _CENTS_RE ledger/money.py\npython3 -c \"\nfrom ledger.money import to_cents\nprint(to_cents('.5'))\nprint(to_cents('.50'))\nprint(to_cents('-.5'))\nprint(to_cents('0'))\nprint(to_cents('00.005'))\nprint(to_cents('2.675'))\nprint(to_cents('-1.005'))\n\""
+    }
+   },
+   "observation": {
+    "ok": true,
+    "result": {
+     "exit_code": 1,
+     "output": "_CENTS_RE = re.compile(r'^[+-]?\\d+(\\.\\d+)?$')\n    if not _CENTS_RE.match(s):\nsed: -e expression #1, char 102: unknown option to `s'\nTraceback (most recent call last):\n  File \"<string>\", line 3, in <module>\n  File \"/workspace/ledger/money.py\", line 12, in to_cents\n    raise ValueError(f\"invalid money text: {text!r}\")\nValueError: invalid money text: '.5'\n"
+    }
+   },
+   "duration_seconds": 0.106
+  },
+  {
+   "index": 10,
+   "action": {
+    "tool": "bash",
+    "args": {
+     "command": "python3 -c \"\nimport re\n# spec: 'optional sign, one or more digits, and an optional . followed by one or more digits'\n# So '.5' is invalid. Good.\nr = re.compile(r'^[+-]?\\d+(\\.\\d+)?$')\nprint(r.match('1.5'))\nprint(r.match('.5'))\nprint(r.match('1.'))\n\""
+    }
+   },
+   "observation": {
+    "ok": true,
+    "result": {
+     "exit_code": 0,
+     "output": "<re.Match object; span=(0, 3), match='1.5'>\nNone\nNone\n"
+    }
+   },
+   "duration_seconds": 0.135
+  },
+  {
+   "index": 11,
+   "action": {
+    "tool": "bash",
+    "args": {
+     "command": "cd /workspace && python3 -m unittest discover -s tests; python3 -c \"\nfrom ledger.money import to_cents, split, allocate\nprint(to_cents('2.675'), to_cents('-1.005'), to_cents('0.004'), to_cents('5'), to_cents('+12.30'), to_cents('-0.005'))\nprint(split(100,3), split(-5,3), split(0,5), split(1,1))\nprint(allocate(10,[1,2]), allocate(-7,[1,1]), allocate(5,[3,0,2]), allocate(100,[1,1,1]))\n\""
+    }
+   },
+   "observation": {
+    "ok": true,
+    "result": {
+     "exit_code": 0,
+     "output": "268 -101 0 500 1230 -1\n[34, 33, 33] [-2, -2, -1] [0, 0, 0, 0, 0] [1]\n[3, 7] [-4, -3] [3, 0, 2] [34, 33, 33]\n..\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n"
+    }
+   },
+   "duration_seconds": 0.281
+  },
+  {
+   "index": 12,
+   "action": {
+    "tool": "submit",
+    "args": {
+     "summary": "Fixed ledger package per SPEC.md:\n\n- ledger/money.py:\n  * to_cents: validates with regex `^[+-]?\\d+(\\.\\d+)?$`, does exact decimal arithmetic via integer math, rounds half away from zero.\n  * split: raises on n<1, splits into near-equal parts with larger abs values first, applies sign of total.\n  * allocate: validates empty/negative/zero-sum weights, computes exact shares via integer division, distributes remaining cents to largest fractional parts (ties broken by lower index), applies sign.\n- ledger/pages.py: 1-indexed pages, raises on number<1 or size<1.\n- ledger/dates.py: parses ISO 8601 with Z or ±HH:MM, raises if no offset, returns UTC-aware datetime; day_bucket formats as YYYY-MM-DD.\n\nVisible tests pass."
+    }
+   },
+   "observation": {
+    "ok": true,
+    "result": "submitted"
+   },
+   "duration_seconds": 0.0
+  }
+ ],
+ "termination": {
+  "terminated": true,
+  "truncated": false,
+  "reason": "submitted"
+ },
+ "duration_seconds": 208.64
+}

@@ -1,0 +1,91 @@
+{
+ "experiment": "d5",
+ "method": [
+  "- Unit of analysis: (model, task). Each trial passes only if the external verifier passed it.",
+  "  Errored trials (infrastructure or provider failures) stay in the denominator as failures and",
+  "  are also counted separately.",
+  "- Per task: unbiased pass@k = 1 - C(n-c, k) / C(n, k)  (Chen et al., 2021), needs n >= k.",
+  "- Per model: mean over tasks. 95% CI, 10,000 percentile-bootstrap resamples, one fixed seed per",
+  "  (experiment, model, k), so a CI does not depend on which other k values are requested:",
+  "  pass@1 resamples tasks, then trials within each task; pass@k for k > 1 resamples tasks only and",
+  "  keeps each task's unbiased estimate (resampling trials with replacement biases pass@k down).",
+  "- Every model must have trials on the same task set, or the script stops. Unreadable trial files",
+  "  (e.g. half-written) are skipped and counted."
+ ],
+ "models": {
+  "qwen36": {
+   "errors": 0,
+   "pass@1": {
+    "ci95": [
+     0.0,
+     0.45
+    ],
+    "pass_at_k": 0.2
+   },
+   "pass@5": {
+    "ci95": [
+     0.0,
+     1.0
+    ],
+    "pass_at_k": 0.5
+   },
+   "tasks": {
+    "git-rescue": {
+     "n": 5,
+     "passed": 0
+    },
+    "incident-p95": {
+     "n": 5,
+     "passed": 2
+    },
+    "ledger-bugs": {
+     "n": 5,
+     "passed": 0
+    },
+    "sqlite-migration": {
+     "n": 5,
+     "passed": 2
+    }
+   },
+   "trials": 20
+  },
+  "qwen38": {
+   "errors": 0,
+   "pass@1": {
+    "ci95": [
+     0.35,
+     0.85
+    ],
+    "pass_at_k": 0.6
+   },
+   "pass@5": {
+    "ci95": [
+     1.0,
+     1.0
+    ],
+    "pass_at_k": 1.0
+   },
+   "tasks": {
+    "git-rescue": {
+     "n": 5,
+     "passed": 3
+    },
+    "incident-p95": {
+     "n": 5,
+     "passed": 4
+    },
+    "ledger-bugs": {
+     "n": 5,
+     "passed": 3
+    },
+    "sqlite-migration": {
+     "n": 5,
+     "passed": 2
+    }
+   },
+   "trials": 20
+  }
+ },
+ "resamples": 10000,
+ "unreadable_trial_files": 0
+}
