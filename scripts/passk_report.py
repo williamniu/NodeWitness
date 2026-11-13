@@ -1,6 +1,9 @@
 """pass@k report with 95% bootstrap confidence intervals, from recorded terminal trials.
 
-    python3 scripts/passk_report.py EXPERIMENT_ID [--k 1 5] [--out results/passk]
+    python3 scripts/passk_report.py EXPERIMENT_ID [--k 1 5] [--out results/passk] [--trials DIR]
+
+The frozen D5 records ship in results/d5/trials, so `--trials results/d5/trials` reproduces
+results/passk/d5.* from a fresh clone.
 
 - Unit of analysis: (model, task). Each trial passes only if the external verifier passed it.
   Errored trials (infrastructure or provider failures) stay in the denominator as failures and
@@ -23,6 +26,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 TRIALS = ROOT / "outputs/terminal/trials"
 RESAMPLES = 10_000
+METHOD = __doc__[__doc__.index("- Unit of analysis"):].strip().splitlines()
 
 
 def pass_at_k(n, c, k):
@@ -31,9 +35,9 @@ def pass_at_k(n, c, k):
     return 1.0 if n - c < k else 1.0 - comb(n - c, k) / comb(n, k)
 
 
-def load(experiment):
+def load(experiment, trials=TRIALS):
     rows, unreadable = {}, 0
-    for path in sorted(TRIALS.glob("*.json")):
+    for path in sorted(Path(trials).glob("*.json")):
         try:
             record = json.loads(path.read_text())
         except ValueError:
@@ -68,14 +72,15 @@ def main():
     parser.add_argument("experiment")
     parser.add_argument("--k", type=int, nargs="+", default=[1, 5])
     parser.add_argument("--out", type=Path, default=ROOT / "results/passk")
+    parser.add_argument("--trials", type=Path, default=TRIALS, help="folder of trial JSON records")
     args = parser.parse_args()
-    data, unreadable = load(args.experiment)
+    data, unreadable = load(args.experiment, args.trials)
     if not data:
         raise SystemExit("No trials recorded for " + args.experiment)
     task_sets = {model: sorted(per_task) for model, per_task in data.items()}
     if len({tuple(v) for v in task_sets.values()}) > 1:
         raise SystemExit("Models were run on different task sets: " + json.dumps(task_sets))
-    report = {"experiment": args.experiment, "method": __doc__.strip().splitlines()[3:],
+    report = {"experiment": args.experiment, "method": METHOD,
               "resamples": RESAMPLES, "unreadable_trial_files": unreadable, "models": {}}
     for model in sorted(data):
         per_task = data[model]
@@ -99,7 +104,8 @@ def main():
             cells.append("%.2f [%.2f, %.2f]" % (s["pass_at_k"], *s["ci95"]) if s else "n<k")
         cells += ["%d/%d" % (row["tasks"][t]["passed"], row["tasks"][t]["n"]) if t in row["tasks"] else "-" for t in tasks]
         lines.append("| %s | %s | %d |" % (model, " | ".join(cells), row["errors"]))
-    lines += ["", "Errored trials count as failures. 95%% CI: percentile bootstrap, %d resamples (pass@1: tasks then trials; pass@k>1: tasks)." % RESAMPLES]
+    lines += ["", "Errored trials count as failures. 95%% CI: percentile bootstrap, %d resamples (pass@1: tasks then trials; pass@k>1: tasks)." % RESAMPLES,
+              "", "When n = k, pass@k per task only means \"passed at least once\", and its CI (tasks resampled) can collapse to one value. Read it as a count of tasks solved at least once."]
     (args.out / (args.experiment + ".md")).write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
 

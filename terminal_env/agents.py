@@ -9,6 +9,12 @@ Use the bash tool to inspect files, write code and test it. Each bash call runs 
 Hidden tests grade the result after you call submit, so test your work on your own inputs first.
 Call exactly one tool per response. When the task is complete, call submit with a short summary."""
 
+# Every sampling option is sent explicitly, so no model's Modelfile defaults leak into a comparison.
+# These match william-qwen38-agent's effective settings during D5 (its Modelfile values plus the
+# temperature/context overrides), so D5's qwen38 trials ran under exactly these options.
+OPTIONS = {"temperature": 0.7, "top_p": 0.95, "top_k": 20, "min_p": 0.0, "repeat_penalty": 1.0,
+           "presence_penalty": 0.0, "num_ctx": 32768, "num_predict": 4096}
+
 TOOLS = [
     {"type": "function", "function": {"name": "bash", "description": "Run one bash command in /workspace.",
                                       "parameters": {"type": "object", "properties": {"command": {"type": "string"}},
@@ -29,11 +35,27 @@ class Ollama:
             found = next((m for m in json.load(response)["models"] if m["name"] == self.model), None)
         if found is None:
             raise RuntimeError("Model is not installed; nothing is downloaded")
-        return {"adapter": "ollama-native-tools@1", "model": self.model, "digest": found["digest"], "think": self.think}
+        details = found.get("details", {})
+        return {"adapter": "ollama-native-tools@1", "model": self.model, "digest": found["digest"], "think": self.think,
+                "parent_model": details.get("parent_model") or None, "family": details.get("family"),
+                "parameter_size": details.get("parameter_size") or None, "quantization": details.get("quantization_level"),
+                "sampling": dict(OPTIONS), "modelfile_parameters": self._show().get("parameters", ""),
+                "ollama_version": self._get("/api/version").get("version")}
+
+    def _get(self, path):
+        with urllib.request.urlopen(self.endpoint + path, timeout=5) as response:
+            return json.load(response)
+
+    def _show(self):
+        """The model's own Modelfile parameters, recorded so a reader can see what the request overrode."""
+        request = urllib.request.Request(self.endpoint + "/api/show", data=json.dumps({"model": self.model}).encode(),
+                                         headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(request, timeout=5) as response:
+            return json.load(response)
 
     def decide(self, messages, seed, timeout=180):
         payload = {"model": self.model, "messages": messages, "tools": TOOLS, "think": self.think, "stream": False,
-                   "options": {"temperature": 0.7, "num_ctx": 32768, "num_predict": 4096, "seed": seed}}
+                   "options": {**OPTIONS, "seed": seed}}
         request = urllib.request.Request(self.endpoint + "/api/chat", data=json.dumps(payload).encode(),
                                          headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(request, timeout=timeout) as response:
