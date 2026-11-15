@@ -1,6 +1,6 @@
 # 14 reward hacks against my agent verifier: 12 it caught, 1 that beat it, 1 it still can't catch
 
-*Draft for William to edit and publish. Every claim links to a test, fixture or log in this repo. Model results come from the D5 run (40 trials).*
+*Every claim links to a test, fixture or log in this repo. Model results come from the D5 run (40 trials) and a 20-trial rerun with pinned sampling.*
 
 ## Why I care
 
