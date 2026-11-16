@@ -8,12 +8,6 @@ npx wrangler dev --config site/wrangler.jsonc --local # preview on http://localh
 npx wrangler deploy --config site/wrangler.jsonc      # publish
 ```
 
-The public contact email is not stored in the repo. Set it at build time; without it the site links only to GitHub and the portfolio:
-
-```bash
-NW_CONTACT_EMAIL='you@example.com' node site/build.mjs && npx wrangler deploy --config site/wrangler.jsonc
-```
-
 `build.mjs` reads its inputs from the pinned commit (`git show origin/main:<path>`), so the content and the line-number links always agree: `tests/agent_env/fixtures/**.json`, `docs/hacks/*.json`, `results/passk/*.{json,md}`, and two test files (to find line numbers for links). It renders everything to HTML at build time, so no raw data ships and the pages need no JavaScript. The one script on the live site is Cloudflare Web Analytics (cookie-free), which Cloudflare injects at the edge; `src/_headers` allows exactly that script and its beacon endpoint, and the footer says so.
 
 The build fails if:

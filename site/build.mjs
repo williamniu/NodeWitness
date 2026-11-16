@@ -11,10 +11,6 @@ const ROOT = resolve(SITE, "..");
 const DIST = join(SITE, "dist");
 const ORIGIN = "https://nodewitness.williamniu.dev";
 const REPO = "https://github.com/williamniu/NodeWitness";
-// Public contact email: set by William at deploy time (NW_CONTACT_EMAIL), so the address is not in the repo.
-// Unset, the site falls back to GitHub-only contact. The leak scan exempts exactly this one address.
-const EMAIL = (process.env.NW_CONTACT_EMAIL || "").trim();
-if (EMAIL && !/^[^\s@<>"]+@[^\s@<>"]+\.[A-Za-z]{2,}$/.test(EMAIL)) throw new Error("NW_CONTACT_EMAIL is not a plain email address");
 const PORTFOLIO = "https://williamniu.dev/";
 
 // Line-number links are pinned to the commit that is on GitHub, so they never drift.
@@ -100,14 +96,14 @@ ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(
     <a href="/replay/"${path.startsWith("/replay") ? ' aria-current="page"' : ""}>Replays</a>
     <a href="${REPO}">GitHub</a>
     <a href="${PORTFOLIO}">Portfolio</a>
-${EMAIL ? `    <a href="mailto:${EMAIL}">Email</a>\n` : ""}  </nav>
+  </nav>
 </header>
 <main id="main">
 ${body}
 </main>
 <footer class="foot">
   <p>Built by William Niu, UChicago class of 2026. I work on agent evaluation and verification.</p>
-  <p>${EMAIL ? `Contact: <a href="mailto:${EMAIL}">${EMAIL}</a>. ` : ""}Portfolio: <a href="${PORTFOLIO}">williamniu.dev</a>.</p>
+  <p>Portfolio: <a href="${PORTFOLIO}">williamniu.dev</a>.</p>
   <p><a href="${REPO}">Source on GitHub</a>. Tables and replays are rendered from files in the repo at commit <a href="${REPO}/commit/${PIN}">${PIN.slice(0, 7)}</a>; other figures cite the README and the write-up.</p>
   <p>The pages need no JavaScript. Cloudflare Web Analytics adds one cookie-free script that counts visits.</p>
 </footer>
@@ -175,7 +171,7 @@ function home(fsm) {
   <h1>Grade what the agent did, not what it says it did.</h1>
   <p class="lede">NodeWitness runs LLM agents inside locked-down Docker containers and grades them from outside, where the agent cannot read or edit the grader. It is built for teams that train and evaluate agents: RL environment builders, eval teams, and labs shipping agents.</p>
   <p class="actions"><a class="btn" href="${REPO}">Read the code on GitHub</a><a class="btn quiet" href="/replay/">Replay recorded runs</a></p>
-  <p class="contact">Hiring for agent evaluation or verification? ${EMAIL ? `Email me at <a href="mailto:${EMAIL}">${EMAIL}</a>, or see` : "See"} my <a href="${PORTFOLIO}">portfolio</a>.</p>
+  <p class="contact">Hiring for agent evaluation or verification? See my <a href="${PORTFOLIO}">portfolio</a>.</p>
   ${exhibit(hero, `${NEG_DIR}/claim-success-no-work.json`)}
 </section>
 
@@ -259,7 +255,7 @@ ${HACKS.map(([h, b, ts]) => `      <tr><td>${esc(h)}</td><td>${esc(b)}</td><td>$
 docker build -t nodewitness-terminal:1 terminal_env/image
 python3 -m unittest -v tests.agent_env.test_environment tests.agent_env.test_frozen_replay tests.terminal_env.test_tasks
 python3 scripts/verifier_canary.py</pre>
-  <p>Questions, or want to try it on your environments? ${EMAIL ? `Email <a href="mailto:${EMAIL}">${EMAIL}</a> or <a href="${REPO}/issues">open an issue on GitHub</a>` : `<a href="${REPO}/issues">Open an issue on GitHub</a>`}.</p>
+  <p>Questions, or want to try it on your environments? <a href="${REPO}/issues">Open an issue on GitHub</a>.</p>
 </section>`;
   return layout({
     title: "NodeWitness: agent environments with a verifier the agent can't reach",
@@ -529,7 +525,6 @@ const FORBIDDEN = [
 ];
 // The only exceptions: exact synthetic strings that are themselves the point of a replay.
 const SYNTHETIC = [
-  ...(EMAIL ? [[new RegExp(EMAIL.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"), "William's public contact email from NW_CONTACT_EMAIL (exact match only)"]] : []),
   [/\/Users\/operator\/\.codex\/auth\.json/g, "planted prompt injection in case E06 (agent_env/cases.py)"],
   [/(config\/|\\t)secrets\.env(?![.\w])/g, "the git-rescue task's synthetic leaked-secrets file"],
 ];
@@ -573,5 +568,4 @@ if (problems.length) {
   console.error("Build checks FAILED:\n" + problems.map((p) => "  - " + p).join("\n"));
   process.exit(1);
 }
-console.log(`Contact email: ${EMAIL ? "set from NW_CONTACT_EMAIL" : "not set (GitHub-only contact)"}.`);
 console.log(`Built ${pages.size} pages + 404 into ${relative(ROOT, DIST)}/ (pinned to ${PIN.slice(0, 7)}). Checks passed: allowlist, leak scan, results tables = markdown, home numbers = JSON, fixture rewards = page copy, all steps rendered.`);
