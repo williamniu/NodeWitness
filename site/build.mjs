@@ -5,6 +5,7 @@ import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync, statSync, 
 import { dirname, join, resolve, relative, extname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 
 const SITE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(SITE, "..");
@@ -12,6 +13,10 @@ const DIST = join(SITE, "dist");
 const ORIGIN = "https://nodewitness.williamniu.dev";
 const REPO = "https://github.com/williamniu/NodeWitness";
 const PORTFOLIO = "https://williamniu.dev/";
+// The demo film (made outside this repo with the demo-film kit) is served from Cloudflare R2, not from this
+// site. demo.json pins the exact file by URL, size and SHA-256; site/check-demo.mjs checks the live copy.
+const DEMO = JSON.parse(readFileSync(join(SITE, "src", "demo.json"), "utf8"));
+const TRANSCRIPT = readFileSync(join(SITE, "src", "demo-transcript.txt"), "utf8").trim().split(/\n\s*\n/).map((p) => p.replace(/\s+/g, " ").trim());
 
 // Line-number links are pinned to the commit that is on GitHub, so they never drift.
 const PIN = execFileSync("git", ["rev-parse", "origin/main"], { cwd: ROOT }).toString().trim();
@@ -170,6 +175,15 @@ function home(fsm) {
 <section class="hero">
   <h1>Grade what the agent did, not what it says it did.</h1>
   <p class="lede">NodeWitness runs LLM agents inside locked-down Docker containers and grades them from outside, where the agent cannot read or edit the grader. It is built for teams that train and evaluate agents: RL environment builders, eval teams, and labs shipping agents.</p>
+  <figure class="demo">
+    <video controls playsinline preload="metadata" poster="/${DEMO.poster}" width="1920" height="1080" aria-label="NodeWitness demo, ${Math.round(DEMO.duration_s)} seconds, captions burned in">
+      <source src="${DEMO.url}" type="video/mp4">
+      <a href="${DEMO.url}">Download the demo video (MP4)</a>.
+    </video>
+    <figcaption>A ${Math.round(DEMO.duration_s)}-second demo, filmed on this site's own pages. Captions are in the picture, so it works muted.
+      <details><summary>Read the transcript</summary>${TRANSCRIPT.map((p) => `<p>${esc(p)}</p>`).join("")}</details>
+    </figcaption>
+  </figure>
   <p class="actions"><a class="btn" href="${REPO}">Read the code on GitHub</a><a class="btn quiet" href="/replay/">Replay recorded runs</a></p>
   <p class="contact">Hiring for agent evaluation or verification? See my <a href="${PORTFOLIO}">portfolio</a>.</p>
   ${exhibit(hero, `${NEG_DIR}/claim-success-no-work.json`)}
@@ -264,13 +278,27 @@ python3 scripts/verifier_canary.py</pre>
     body,
     jsonld: {
       "@context": "https://schema.org",
-      "@type": "SoftwareSourceCode",
-      name: "NodeWitness",
-      description: "Hardened agent environments whose verifier the agent cannot reach.",
-      codeRepository: REPO,
-      url: ORIGIN + "/",
-      programmingLanguage: ["Python", "TypeScript"],
-      author: { "@type": "Person", name: "William Niu", url: PORTFOLIO, sameAs: ["https://github.com/williamniu"] },
+      "@graph": [
+        {
+          "@type": "SoftwareSourceCode",
+          name: "NodeWitness",
+          description: "Hardened agent environments whose verifier the agent cannot reach.",
+          codeRepository: REPO,
+          url: ORIGIN + "/",
+          programmingLanguage: ["Python", "TypeScript"],
+          author: { "@type": "Person", name: "William Niu", url: PORTFOLIO, sameAs: ["https://github.com/williamniu"] },
+        },
+        {
+          "@type": "VideoObject",
+          name: "NodeWitness demo: grade what the agent did, not what it says it did",
+          description: "An agent that claims success with no work scores 0; a forged git verdict scored 1 by an old verifier scores 0 by the shipped one; CI and pass@k results.",
+          thumbnailUrl: `${ORIGIN}/${DEMO.poster}`,
+          contentUrl: DEMO.url,
+          uploadDate: DEMO.upload_date,
+          duration: `PT${Math.floor(DEMO.duration_s / 60)}M${Math.round(DEMO.duration_s % 60)}S`,
+          transcript: TRANSCRIPT.join(" "),
+        },
+      ],
     },
   });
 }
@@ -499,13 +527,13 @@ for (const [path, html] of pages) {
   writeFileSync(join(dir, "index.html"), html);
 }
 writeFileSync(join(DIST, "404.html"), notFound());
-for (const f of ["style.css", "og.png", "favicon.svg", "_headers"]) copyFileSync(join(SITE, "src", f), join(DIST, f));
+for (const f of ["style.css", "og.png", "favicon.svg", "_headers", DEMO.poster]) copyFileSync(join(SITE, "src", f), join(DIST, f));
 writeFileSync(join(DIST, "robots.txt"), `User-agent: *\nAllow: /\n\nSitemap: ${ORIGIN}/sitemap.xml\n`);
 writeFileSync(join(DIST, "sitemap.xml"), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${[...pages.keys()].map((p) => `  <url><loc>${ORIGIN}${p}</loc></url>`).join("\n")}\n</urlset>\n`);
 writeFileSync(join(DIST, "pages.txt"), [...pages.keys()].join("\n") + "\n");
 
 // ---------- checks: allowlist + leak scan ----------
-const ALLOWED_EXT = new Set([".html", ".css", ".png", ".svg", ".txt", ".xml", ""]);
+const ALLOWED_EXT = new Set([".html", ".css", ".png", ".jpg", ".svg", ".txt", ".xml", ""]);
 const FORBIDDEN = [
   [/\/users\//i, "home-directory path (macOS)"],
   [/\/home\/[a-z]/i, "home-directory path (Linux)"],
@@ -528,6 +556,18 @@ const SYNTHETIC = [
   [/\/Users\/operator\/\.codex\/auth\.json/g, "planted prompt injection in case E06 (agent_env/cases.py)"],
   [/(config\/|\\t)secrets\.env(?![.\w])/g, "the git-rescue task's synthetic leaked-secrets file"],
 ];
+// Top-level MP4 boxes except the media data: [size:u32][type:4cc], size 1 = 64-bit size follows, 0 = to end of file.
+function mp4Metadata(buf) {
+  const keep = [];
+  for (let o = 0; o + 8 <= buf.length;) {
+    let size = buf.readUInt32BE(o), head = 8;
+    if (size === 1) { size = Number(buf.readBigUInt64BE(o + 8)); head = 16; } else if (size === 0) size = buf.length - o;
+    if (size < head) throw new Error(`malformed MP4 box at ${o}`);
+    if (buf.toString("latin1", o + 4, o + 8) !== "mdat") keep.push(buf.subarray(o, o + size));
+    o += size;
+  }
+  return Buffer.concat(keep);
+}
 const walk = (d) => readdirSync(d).flatMap((f) => (statSync(join(d, f)).isDirectory() ? walk(join(d, f)) : [join(d, f)]));
 const problems = [];
 for (const f of walk(DIST)) {
@@ -535,7 +575,11 @@ for (const f of walk(DIST)) {
   if (!ALLOWED_EXT.has(extname(f))) problems.push(`${rel}: extension not allowlisted`);
   if (rel !== "_headers" && extname(f) === "") problems.push(`${rel}: unexpected file`);
   // PNGs too, like `strings`: printable runs of 8+ chars, which is where metadata text would sit.
-  let text = extname(f) === ".png" ? (readFileSync(f, "latin1").match(/[\x20-\x7e]{8,}/g) || []).join("\n") : readFileSync(f, "utf8");
+  // Binary files like `strings`: printable runs of 8+ chars, where metadata text would sit. For MP4 only the
+  // metadata atoms are scanned; compressed frames (mdat) are noise that matches short patterns by chance.
+  const ext = extname(f), raw = readFileSync(f);
+  const meta = ext === ".mp4" ? mp4Metadata(raw) : raw;
+  let text = [".png", ".jpg", ".mp4"].includes(ext) ? (meta.toString("latin1").match(/[\x20-\x7e]{8,}/g) || []).join("\n") : raw.toString("utf8");
   for (const [re] of SYNTHETIC) text = text.replace(re, "");
   for (const [re, why] of FORBIDDEN) if (re.test(text)) problems.push(`${rel}: ${why} (${re})`);
 }
@@ -564,6 +608,25 @@ for (const it of [...items.neg, ...items.qwen, ...items.git]) {
   const shown = (pages.get(`/replay/${slug(it)}/`).match(/<li class="step">/g) || []).length;
   if (shown !== n) problems.push(`replay ${slug(it)}: ${shown} steps shown, fixture has ${n}`);
 }
+// The video is not in dist/. If the upload copy is present locally (site/media/, git-ignored), it must be exactly
+// the file demo.json pins, under 25 MiB, with clean metadata; check-demo.mjs does the same for the live URL.
+const localDemo = join(SITE, "media", basename(new URL(DEMO.url).pathname));
+if (!/^https:\/\/media\.williamniu\.dev\/[\w./-]+\.mp4$/.test(DEMO.url)) problems.push(`demo.json: unexpected video URL ${DEMO.url}`);
+if (!readFileSync(join(DIST, "_headers"), "utf8").includes(`media-src ${new URL(DEMO.url).origin}`)) problems.push("_headers: CSP media-src does not allow the video origin");
+try {
+  const demoBytes = readFileSync(localDemo);
+  const demoSha = createHash("sha256").update(demoBytes).digest("hex");
+  if (demoSha !== DEMO.sha256 || demoBytes.length !== DEMO.bytes) problems.push(`${relative(ROOT, localDemo)}: differs from demo.json`);
+  if (demoBytes.length > 25 * 1024 * 1024) problems.push(`${relative(ROOT, localDemo)}: over 25 MiB`);
+  const meta = (mp4Metadata(demoBytes).toString("latin1").match(/[\x20-\x7e]{8,}/g) || []).join("\n");
+  for (const [re, why] of FORBIDDEN) if (re.test(meta)) problems.push(`${relative(ROOT, localDemo)} metadata: ${why}`);
+  console.log(`Demo video: local copy matches demo.json (${(demoBytes.length / 1048576).toFixed(1)} MB).`);
+} catch (e) {
+  if (e.code !== "ENOENT") throw e;
+  console.log(`Demo video: no local copy at ${relative(ROOT, localDemo)}; run node site/check-demo.mjs to check the live file.`);
+}
+const homeHtml = readFileSync(join(DIST, "index.html"), "utf8");
+for (const p of TRANSCRIPT) if (!homeHtml.includes(`<p>${esc(p)}</p>`)) problems.push(`home: transcript paragraph missing: ${p.slice(0, 40)}`);
 if (problems.length) {
   console.error("Build checks FAILED:\n" + problems.map((p) => "  - " + p).join("\n"));
   process.exit(1);
