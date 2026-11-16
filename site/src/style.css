@@ -54,7 +54,7 @@ code { overflow-wrap: anywhere; }
 .top { display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; align-items: center; justify-content: space-between; padding: 1.25rem 0; border-bottom: 1px solid var(--rule); }
 .mark { display: inline-flex; align-items: center; gap: 0.55rem; font-weight: 750; font-size: 1.1rem; color: var(--ink); text-decoration: none; letter-spacing: -0.01em; }
 .mark-box { width: 1.05rem; height: 1.05rem; border: 2.5px solid var(--ink); border-right-color: var(--tag); border-right-style: dashed; }
-.top nav { display: flex; gap: 1.25rem; }
+.top nav { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; }
 .top nav a { color: var(--ink); text-decoration: none; font-weight: 500; }
 .top nav a[aria-current="page"], .top nav a:hover { text-decoration: underline; text-decoration-color: var(--tag); text-decoration-thickness: 3px; }
 
@@ -70,7 +70,9 @@ p { margin: 0 0 1rem; }
 .small { font-size: 0.93rem; color: var(--muted); }
 .crumb { margin-bottom: 0.5rem; }
 
-.actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.5rem 0 2.5rem; }
+.actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.5rem 0 1rem; }
+.contact { margin: 0 0 2.5rem; color: var(--muted); }
+.contact a { overflow-wrap: anywhere; }
 .btn { display: inline-block; padding: 0.7rem 1.15rem; background: var(--ink); color: var(--ground); font-weight: 600; text-decoration: none; border: 2px solid var(--ink); }
 .btn.quiet { background: transparent; color: var(--ink); }
 .btn:hover { background: var(--tag); color: var(--tag-ink); border-color: var(--tag); }
