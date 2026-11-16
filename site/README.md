@@ -23,8 +23,8 @@ The home page embeds a demo film made outside this repo (demo-film kit). The MP4
 To publish a new version, give it a new file name (never overwrite, so the immutable cache stays correct):
 
 ```bash
-cp <film>/out/<name>-web.mp4 site/media/demo-v7.mp4          # git-ignored upload copy; the build checks it
-npx wrangler r2 object put williamniu-media/nodewitness/demo-v7.mp4 --file site/media/demo-v7.mp4 \
+cp <film>/out/<name>-web.mp4 site/media/demo-v8.mp4          # git-ignored upload copy; the build checks it
+npx wrangler r2 object put williamniu-media/nodewitness/demo-v8.mp4 --file site/media/demo-v8.mp4 \
   --content-type video/mp4 --cache-control "public, max-age=31536000, immutable" --remote
 # update src/demo.json (url, bytes, sha256, duration_s), then:
 node site/build.mjs && node site/check-demo.mjs               # local copy + live copy both match demo.json
