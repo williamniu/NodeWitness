@@ -1,0 +1,19 @@
+Your agent says it finished the task. What did it actually do?
+
+NodeWitness runs agents in locked-down containers and grades them from outside, where the agent can't touch the grader.
+
+This run claimed success and did nothing. Reward: zero.
+
+Agents learn to look done. They skip the job, cite stale files, or edit what the grader reads. Each known hack has a test that must score zero.
+
+Then an independent review agent attacked the verifier itself, and found a forgery.
+
+The agent swapped its git folder for a pointer and planted a hook that ran inside the verifier's own git command. It claimed the token was purged. The old verifier gave it full reward.
+
+The shipped verifier refuses that setup. Same run, reward zero.
+
+Now CI breaks the verifier eleven ways, and replays real and hacked runs on every commit. If any verdict drifts, the build goes red.
+
+On four real-shell tasks, one local model passed sixty percent of trials, the other twenty, and thirty-five with sampling pinned. A small sample, but the tasks separate agents.
+
+NodeWitness. Grade what the agent did, not what it says it did.
