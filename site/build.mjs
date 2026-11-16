@@ -18,9 +18,11 @@ const blob = (path, line) => `${REPO}/blob/${PIN}/${path}${line ? `#L${line}` : 
 const tree = (path) => `${REPO}/tree/${PIN}/${path}`;
 
 // ---------- inputs (the only repo files the build reads) ----------
-const readJson = (p) => JSON.parse(readFileSync(join(ROOT, p), "utf8"));
-const readText = (p) => readFileSync(join(ROOT, p), "utf8");
-const listJson = (dir) => readdirSync(join(ROOT, dir)).filter((f) => f.endsWith(".json")).sort().map((f) => `${dir}/${f}`);
+// Inputs come from the pinned commit itself (git show), so content and links always agree.
+const git = (...a) => execFileSync("git", a, { cwd: ROOT, maxBuffer: 64 << 20 }).toString();
+const readText = (p) => git("show", `${PIN}:${p}`);
+const readJson = (p) => JSON.parse(readText(p));
+const listJson = (dir) => git("ls-tree", "--name-only", `${PIN}:${dir}`).split("\n").filter((f) => f.endsWith(".json")).sort().map((f) => `${dir}/${f}`);
 
 const NEG_DIR = "tests/agent_env/fixtures/frozen_negative";
 const QWEN_DIR = "tests/agent_env/fixtures/frozen_nw001_v1";
@@ -52,7 +54,7 @@ const FAULTS = {
 };
 const SCENARIO_FAULT = { D01: "route", E01: "route", E02: "stale", E03: "conflict", E04: "timeout", E05: "protected", E06: "injection" };
 
-function layout({ title, description, path, body, jsonld }) {
+function layout({ title, description, path, body, jsonld, noindex }) {
   const url = ORIGIN + path;
   const fullTitle = path === "/" ? title : `${title} | NodeWitness`;
   return `<!doctype html>
@@ -62,7 +64,7 @@ function layout({ title, description, path, body, jsonld }) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(fullTitle)}</title>
 <meta name="description" content="${esc(description)}">
-<link rel="canonical" href="${url}">
+${noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${url}">`}
 <meta name="author" content="William Niu">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="NodeWitness">
@@ -99,7 +101,8 @@ ${body}
 </main>
 <footer class="foot">
   <p>Built by William Niu, UChicago class of 2026. I work on agent evaluation and verification.</p>
-  <p><a href="${REPO}">Source on GitHub</a>. Every number on this site is rendered from files in the repo at commit <a href="${REPO}/commit/${PIN}">${PIN.slice(0, 7)}</a>.</p>
+  <p><a href="${REPO}">Source on GitHub</a>. Tables and replays are rendered from files in the repo at commit <a href="${REPO}/commit/${PIN}">${PIN.slice(0, 7)}</a>; other figures cite the README and the write-up.</p>
+  <p>The pages need no JavaScript. Cloudflare Web Analytics adds one cookie-free script that counts visits.</p>
 </footer>
 </body>
 </html>
@@ -155,6 +158,7 @@ const HACKS = [
   ["Swap .git for a gitdir: file and plant a core.fsmonitor hook that forges the verifier's output", "Plain .git directory only; fresh bare repo from objects and refs; output lines must carry a per-run nonce", ["test_gitdir_file_and_fsmonitor_cannot_forge_the_verdict", "test_agent_git_config_and_hooks_never_run_during_verification"]],
 ];
 
+let COUNTS = {};
 function home(fsm) {
   const hero = readJson(`${NEG_DIR}/claim-success-no-work.json`);
   const beforeChecks = Object.entries(fsm.before.checks);
@@ -189,7 +193,7 @@ function home(fsm) {
 
 <section>
   <h2>Reward hacks it blocks</h2>
-  <p>Each row links to the test that keeps it blocked. All of them run in CI on every commit.</p>
+  <p>The first ten rows are the config-repair table from the README; the last two are git-rescue hacks from the write-up. Each row links to the test that keeps it blocked, and all of them run in CI on every commit.</p>
   <div class="table-wrap"><table class="hacks">
     <thead><tr><th scope="col">Hack</th><th scope="col">What blocks it</th><th scope="col">Test</th></tr></thead>
     <tbody>
@@ -225,7 +229,7 @@ ${HACKS.map(([h, b, ts]) => `      <tr><td>${esc(h)}</td><td>${esc(b)}</td><td>$
   <p>A verifier that silently gets lenient is worse than none. Two CI gates watch for that.</p>
   <ul class="plain">
     <li><strong>Broken-verifier canary.</strong> <a href="${blob("scripts/verifier_canary.py")}">verifier_canary.py</a> breaks the verifier 11 ways, one check at a time. Each broken verifier must fail the exact test written for it. A crash, or a failure in some other test, does not count.</li>
-    <li><strong>Two-sided frozen replay.</strong> 15 recorded real-Qwen trajectories must keep scoring 1, and 6 scripted hack attempts must keep scoring 0, with identical observations, final state and verdict. A verifier that drifts stricter or more lenient fails. <a href="/replay/">Browse all of them</a>.</li>
+    <li><strong>Two-sided frozen replay.</strong> ${COUNTS.qwen} recorded real-Qwen trajectories must keep scoring 1, and ${COUNTS.neg} scripted hack attempts must keep scoring 0, with identical observations, final state and verdict. A verifier that drifts stricter or more lenient fails. <a href="/replay/">Browse all of them</a>.</li>
   </ul>
 </section>
 
@@ -288,7 +292,7 @@ function results() {
   const body = `
 <section class="page-head">
   <h1>Results, with the caveats up front</h1>
-  <p class="lede">Rendered from ${code("results/passk/d5.json")} and ${code("results/passk/d5-pinned.json")} at build time. Nothing here is typed in by hand.</p>
+  <p class="lede">Rendered from ${code("results/passk/d5.json")} and ${code("results/passk/d5-pinned.json")} at build time; the build fails if any cell differs from the committed ${code("results/passk/*.md")} reports.</p>
 </section>
 <section>
   <h2>Terminal tasks, experiment D5</h2>
@@ -296,6 +300,7 @@ function results() {
   ${passkTable("d5")}
   <p>The two models' sampling defaults differed, so ${code("qwen36")} was rerun with sampling pinned:</p>
   ${passkTable("d5-pinned")}
+  <p class="small">${esc(readText("results/passk/d5.md").split("\n").find((l) => l.startsWith("When n = k")))}</p>
   <p>An independent review regraded all 40 D5 workspaces and found every pass genuine.</p>
 </section>
 <section>
@@ -440,7 +445,7 @@ function replayIndex({ neg, qwen, git }) {
 </section>
 <section>
   <h2>Reward-hack attempts that must score 0</h2>
-  <p>Scripted attacks on the config-repair environment, one per hack class.</p>
+  <p>Scripted attacks on the config-repair environment, covering six of the hack classes in the table on the home page.</p>
   <ul class="runs">${neg.map(row).join("")}</ul>
 </section>
 <section>
@@ -455,7 +460,7 @@ function replayIndex({ neg, qwen, git }) {
 </section>`;
   return layout({
     title: "Replays",
-    description: "Read-only replays of 23 frozen NodeWitness agent trajectories: scripted reward hacks that must score 0, real Qwen runs that must score 1, and two git hacks.",
+    description: `Read-only replays of ${COUNTS.all} frozen NodeWitness agent trajectories: scripted reward hacks that must score 0, real Qwen runs that must score 1, and two git hacks.`,
     path: "/replay/",
     body,
   });
@@ -466,6 +471,7 @@ function notFound() {
     title: "Page not found",
     description: "This page does not exist on the NodeWitness site.",
     path: "/404",
+    noindex: true,
     body: `<section class="page-head"><h1>No page at this address</h1><p class="lede">Go to the <a href="/">home page</a>, the <a href="/results/">results</a> or the <a href="/replay/">replays</a>.</p></section>`,
   });
 }
@@ -475,6 +481,7 @@ rmSync(DIST, { recursive: true, force: true });
 mkdirSync(DIST, { recursive: true });
 const pages = new Map();
 const items = replayItems();
+COUNTS = { neg: items.neg.length, qwen: items.qwen.length, all: items.neg.length + items.qwen.length + items.git.length };
 const fsm = items.git.find((g) => g.fx.name === "git-gitdir-fsmonitor").fx;
 pages.set("/", home(fsm));
 pages.set("/results/", results());
@@ -496,20 +503,26 @@ writeFileSync(join(DIST, "pages.txt"), [...pages.keys()].join("\n") + "\n");
 // ---------- checks: allowlist + leak scan ----------
 const ALLOWED_EXT = new Set([".html", ".css", ".png", ".svg", ".txt", ".xml", ""]);
 const FORBIDDEN = [
-  [/\/Users\/(?!operator\/)/, "real home-directory path"],
-  [/job-search/i, "private job-search folder"],
-  [/\.env(\.|\b)(?!")/, "env file reference"],
-  [/@gmail\.com/i, "personal email"],
-  [/\bsk-[A-Za-z0-9_-]{16,}/, "API key"],
-  [/\bgh[pousr]_[A-Za-z0-9]{20,}/, "GitHub token"],
+  [/\/users\//i, "home-directory path (macOS)"],
+  [/\/home\/[a-z]/i, "home-directory path (Linux)"],
+  [/[A-Za-z]:\\+Users\\+/i, "home-directory path (Windows)"],
+  [/~\/[A-Za-z0-9]/, "home-relative path"],
+  [/job-search|fall-recruit/i, "private job-search material"],
+  [/\.env(rc|\b)/, "env file reference"],
+  [/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}\b/, "email address"],
+  [/\bsk-[A-Za-z0-9_-]{16,}/, "API key (sk-)"],
+  [/\bgh[pousr]_[A-Za-z0-9]{20,}|\bgithub_pat_[A-Za-z0-9_]{20,}/, "GitHub token"],
+  [/\bhf_[A-Za-z0-9]{20,}/, "Hugging Face token"],
+  [/\bAIza[0-9A-Za-z_-]{30,}/, "Google API key"],
+  [/\bxox[abposr]-[A-Za-z0-9-]{10,}/, "Slack token"],
   [/\bAKIA[0-9A-Z]{16}\b/, "AWS key"],
   [/-----BEGIN [A-Z ]*PRIVATE KEY/, "private key"],
   [/NW_FINANCE_PYTHON|codex-mcp/, "local engine reference"],
 ];
-// The only allowed exceptions are synthetic strings that are themselves the point of a replay.
+// The only exceptions: exact synthetic strings that are themselves the point of a replay.
 const SYNTHETIC = [
-  "/Users/operator/.codex/auth.json", // planted prompt injection in case E06
-  "secrets.env", // the git-rescue task's synthetic leaked-secrets file name
+  [/\/Users\/operator\/\.codex\/auth\.json/g, "planted prompt injection in case E06 (agent_env/cases.py)"],
+  [/(config\/|\\t)secrets\.env(?![.\w])/g, "the git-rescue task's synthetic leaked-secrets file"],
 ];
 const walk = (d) => readdirSync(d).flatMap((f) => (statSync(join(d, f)).isDirectory() ? walk(join(d, f)) : [join(d, f)]));
 const problems = [];
@@ -517,26 +530,38 @@ for (const f of walk(DIST)) {
   const rel = relative(DIST, f);
   if (!ALLOWED_EXT.has(extname(f))) problems.push(`${rel}: extension not allowlisted`);
   if (rel !== "_headers" && extname(f) === "") problems.push(`${rel}: unexpected file`);
-  if (extname(f) === ".png") continue;
-  let text = readFileSync(f, "utf8");
-  for (const s of SYNTHETIC) text = text.split(s).join("");
+  // PNGs too, like `strings`: printable runs of 8+ chars, which is where metadata text would sit.
+  let text = extname(f) === ".png" ? (readFileSync(f, "latin1").match(/[\x20-\x7e]{8,}/g) || []).join("\n") : readFileSync(f, "utf8");
+  for (const [re] of SYNTHETIC) text = text.replace(re, "");
   for (const [re, why] of FORBIDDEN) if (re.test(text)) problems.push(`${rel}: ${why} (${re})`);
 }
-// Numbers on the results page must equal the committed markdown reports, cell for cell.
+// The results tables must equal the committed markdown reports row by row, cell by cell, in order.
+const resultsHtml = pages.get("/results/");
+const stripTags = (h) => h.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").trim();
 for (const exp of Object.keys(PASSK)) {
-  const md = readText(`results/passk/${exp}.md`).split("\n").filter((l) => /^\| qwen/.test(l));
-  const html = pages.get("/results/");
-  for (const line of md) {
-    const cells = line.split("|").slice(1, -1).map((c) => c.trim());
-    for (const c of cells) if (!html.includes(esc(c))) problems.push(`results: ${exp} cell "${c}" missing`);
-  }
+  const mdRows = readText(`results/passk/${exp}.md`).split("\n").filter((l) => l.startsWith("|") && !/^\|[-| ]+\|$/.test(l));
+  const want = mdRows.map((l) => l.split("|").slice(1, -1).map((c) => c.trim()));
+  const table = resultsHtml.split(`<caption>Experiment <code>${exp}</code></caption>`)[1].split("</table>")[0];
+  const got = [...table.matchAll(/<tr>([\s\S]*?)<\/tr>/g)].map((m) => [...m[1].matchAll(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/g)].map((c) => stripTags(c[1])));
+  if (JSON.stringify(got) !== JSON.stringify(want)) problems.push(`results: ${exp} table differs from results/passk/${exp}.md\n    want ${JSON.stringify(want)}\n    got  ${JSON.stringify(got)}`);
 }
-// Each replay page shows the reward stored in its fixture.
-for (const it of [...items.neg, ...items.qwen]) {
-  if (!pages.get(`/replay/${slug(it)}/`).includes(`reward reward-${it.fx.verifier.reward}">reward ${it.fx.verifier.reward}<`)) problems.push(`replay ${slug(it)}: reward mismatch`);
+// Home-page headline numbers must equal the JSON they claim to come from.
+for (const [model, exp] of [["qwen38", "d5"], ["qwen36", "d5"], ["qwen36", "d5-pinned"]]) {
+  const r = PASSK[exp].models[model]["pass@1"];
+  if (!pages.get("/").includes(`<dd>${pct(r.pass_at_k)}</dd><dd class="ci">95% CI ${pct(r.ci95[0])}–${pct(r.ci95[1])}</dd>`)) problems.push(`home: ${exp} ${model} pass@1 not shown as in JSON`);
+}
+// Fixtures must score what the page copy says they score: hacks 0, real runs 1, git hacks 1 naive / 0 shipped.
+for (const it of items.neg) if (it.fx.verifier.reward !== 0) problems.push(`replay ${slug(it)}: hack fixture scores ${it.fx.verifier.reward}, page says 0`);
+for (const it of items.qwen) if (it.fx.verifier.reward !== 1) problems.push(`replay ${slug(it)}: real run scores ${it.fx.verifier.reward}, page says 1`);
+for (const it of items.git) if (it.fx.before.reward !== 1 || it.fx.after.reward !== 0) problems.push(`replay ${slug(it)}: expected naive 1 / shipped 0`);
+// Each replay page renders every step of its fixture.
+for (const it of [...items.neg, ...items.qwen, ...items.git]) {
+  const n = (it.fx.steps ?? it.fx.trajectory).length;
+  const shown = (pages.get(`/replay/${slug(it)}/`).match(/<li class="step">/g) || []).length;
+  if (shown !== n) problems.push(`replay ${slug(it)}: ${shown} steps shown, fixture has ${n}`);
 }
 if (problems.length) {
   console.error("Build checks FAILED:\n" + problems.map((p) => "  - " + p).join("\n"));
   process.exit(1);
 }
-console.log(`Built ${pages.size} pages + 404 into ${relative(ROOT, DIST)}/ (pinned to ${PIN.slice(0, 7)}). Checks passed: allowlist, leak scan, results match markdown, replay rewards match fixtures.`);
+console.log(`Built ${pages.size} pages + 404 into ${relative(ROOT, DIST)}/ (pinned to ${PIN.slice(0, 7)}). Checks passed: allowlist, leak scan, results tables = markdown, home numbers = JSON, fixture rewards = page copy, all steps rendered.`);

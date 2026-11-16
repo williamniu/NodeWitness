@@ -1,5 +1,5 @@
 {
-  // Static assets only: no Worker script, so nothing here can run code or call a model.
+  // Static assets only: no Worker script, so nothing here runs server code or calls a model.
   "name": "nodewitness-site",
   "compatibility_date": "2026-11-01",
   "assets": {

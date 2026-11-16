@@ -8,6 +8,12 @@ npx wrangler dev --config site/wrangler.jsonc --local # preview on http://localh
 npx wrangler deploy --config site/wrangler.jsonc      # publish
 ```
 
-`build.mjs` reads only these repo files: `tests/agent_env/fixtures/**.json`, `docs/hacks/*.json`, `results/passk/*.{json,md}`, and two test files (to find line numbers for links). It renders everything to HTML at build time, so no raw data and no JavaScript ship. The build fails if the output contains a file type outside the allowlist, a real home-directory path, `job-search`, an env-file reference, an email address, key-shaped strings, or a results cell that differs from `results/passk/*.md`.
+`build.mjs` reads its inputs from the pinned commit (`git show origin/main:<path>`), so the content and the line-number links always agree: `tests/agent_env/fixtures/**.json`, `docs/hacks/*.json`, `results/passk/*.{json,md}`, and two test files (to find line numbers for links). It renders everything to HTML at build time, so no raw data ships and the pages need no JavaScript. The one script on the live site is Cloudflare Web Analytics (cookie-free), which Cloudflare injects at the edge; `src/_headers` allows exactly that script and its beacon endpoint, and the footer says so.
+
+The build fails if:
+- the output has a file type outside the allowlist;
+- any page, or the PNG's text, contains a home-directory path (macOS, Linux, Windows, `~/`), `job-search`, an `.env` reference, an email address, or a key-shaped string (`sk-`, GitHub, Hugging Face, Google, Slack, AWS, private keys). The only exemptions are two exact synthetic strings that are the subject of a replay;
+- a results table differs from `results/passk/*.md` row by row and cell by cell, or a home-page number differs from the JSON;
+- a fixture scores differently from what its page says (hacks 0, real runs 1, git hacks 1 naive / 0 shipped), or a replay page drops a step.
 
 Nothing here runs an agent, calls a model or starts a container.
